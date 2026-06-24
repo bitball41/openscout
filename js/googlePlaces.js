@@ -19,7 +19,7 @@
 
     activeKey = key;
     loaderPromise = new Promise((resolve, reject) => {
-      const callbackName = `voidScoutMapsLoaded_${Date.now()}`;
+      const callbackName = `openScoutMapsLoaded_${Date.now()}`;
       const script = document.createElement("script");
       const params = new URLSearchParams({
         key,
@@ -423,8 +423,8 @@
     return match?.[key] || "";
   }
 
-  window.VoidScout = window.VoidScout || {};
-  window.VoidScout.googlePlaces = {
+  window.OpenScout = window.OpenScout || {};
+  window.OpenScout.googlePlaces = {
     getLocationSuggestions,
     reverseGeocodeLocation,
     searchLeads,

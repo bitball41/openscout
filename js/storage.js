@@ -1,8 +1,8 @@
 (function () {
-  const KEY = "voidScout.googleMapsApiKey";
+  const KEY = "openscout.googleMapsApiKey";
 
-  window.VoidScout = window.VoidScout || {};
-  window.VoidScout.storage = {
+  window.OpenScout = window.OpenScout || {};
+  window.OpenScout.storage = {
     getApiKey() {
       return localStorage.getItem(KEY) || "";
     },

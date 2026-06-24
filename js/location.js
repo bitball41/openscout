@@ -27,8 +27,8 @@
     return `Current location (${coords.lat.toFixed(3)}, ${coords.lng.toFixed(3)})`;
   }
 
-  window.VoidScout = window.VoidScout || {};
-  window.VoidScout.location = {
+  window.OpenScout = window.OpenScout || {};
+  window.OpenScout.location = {
     getBrowserLocation,
     formatCoordinates,
   };

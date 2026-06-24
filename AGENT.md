@@ -1,8 +1,8 @@
-# VoidScout Agent Brief
+# OpenScout Agent Brief
 
 ## Product Intent
 
-VoidScout is supposed to be a minimal, client-side lead-hunting web app for web designers and small agencies. Its job is to help users find local businesses that appear on Google Maps but do not have a website listed, so those businesses can become prospects for web design outreach.
+OpenScout is supposed to be a minimal, client-side lead-hunting web app for web designers and small agencies. Its job is to help users find local businesses that appear on Google Maps but do not have a website listed, so those businesses can become prospects for web design outreach.
 
 This is not meant to be a marketing site, CRM, scraper backend, or sales automation platform. It should feel like a focused utility: enter a key, choose a place and business type, scan, review leads, export CSV.
 
@@ -115,7 +115,7 @@ When modifying this app:
 
 ## What This Should Not Become
 
-Avoid turning VoidScout into:
+Avoid turning OpenScout into:
 
 - A general Google Maps clone.
 - A cold email sender.

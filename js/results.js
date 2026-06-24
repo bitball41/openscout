@@ -164,8 +164,8 @@
     });
   }
 
-  window.VoidScout = window.VoidScout || {};
-  window.VoidScout.results = {
+  window.OpenScout = window.OpenScout || {};
+  window.OpenScout.results = {
     renderResults,
     renderAttributions,
   };

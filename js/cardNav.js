@@ -28,21 +28,20 @@
       label: "About",
       links: [
         {
-          label: "What VoidScout does",
+          label: "What OpenScout does",
           href: "about.html",
-          ariaLabel: "About VoidScout",
+          ariaLabel: "About OpenScout",
         },
         {
           label: "How leads are found",
           href: "about.html#filtering",
-          ariaLabel: "How VoidScout decides a business is a lead",
+          ariaLabel: "How OpenScout decides a business is a lead",
         },
         {
-          // Placeholder until the public repo is live — VoidScout is open source.
           label: "Source on GitHub",
-          href: "#",
+          href: "https://github.com/bitball41/openscout",
           icon: "github",
-          ariaLabel: "VoidScout source on GitHub (open source)",
+          ariaLabel: "OpenScout source on GitHub (open source)",
         },
       ],
     },
@@ -130,7 +129,7 @@
     '<span class="hamburger-line"></span>' +
     '<span class="hamburger-line"></span>' +
     "</div>" +
-    '<div class="logo-container"><a class="card-nav-logo" href="index.html">VoidScout</a></div>' +
+    '<div class="logo-container"><a class="card-nav-logo" href="index.html">OpenScout</a></div>' +
     '<a class="card-nav-cta-button" href="app.html">Start scanning</a>' +
     "</div>" +
     '<div class="card-nav-content" aria-hidden="true">' +

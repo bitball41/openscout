@@ -1,5 +1,5 @@
 (function () {
-  function downloadLeadsCsv(leads, filename = "voidscout-leads.csv") {
+  function downloadLeadsCsv(leads, filename = "openscout-leads.csv") {
     const headers = [
       "Business Name",
       "Lead Type",
@@ -45,8 +45,8 @@
       .join(",");
   }
 
-  window.VoidScout = window.VoidScout || {};
-  window.VoidScout.exporter = {
+  window.OpenScout = window.OpenScout || {};
+  window.OpenScout.exporter = {
     downloadLeadsCsv,
   };
 })();

@@ -7,7 +7,7 @@
     resultPage: 1,
   };
   const RESULTS_PAGE_SIZE = 8;
-  const THEME_KEY = "voidScout.theme";
+  const THEME_KEY = "openscout.theme";
 
   // Minimum "pessimistic" loader time per scan depth, so a scan always feels
   // like real work even though the API usually returns in a second or two.
@@ -56,7 +56,7 @@
   document.addEventListener("DOMContentLoaded", init);
 
   function init() {
-    const savedKey = VoidScout.storage.getApiKey();
+    const savedKey = OpenScout.storage.getApiKey();
     const apiInput = document.querySelector(selectors.apiKey);
 
     apiInput.value = savedKey;
@@ -248,7 +248,7 @@
 
   function saveApiKey() {
     const apiInput = document.querySelector(selectors.apiKey);
-    const key = VoidScout.storage.setApiKey(apiInput.value);
+    const key = OpenScout.storage.setApiKey(apiInput.value);
 
     apiInput.value = key;
     updateKeyStatus(Boolean(key));
@@ -260,7 +260,7 @@
 
     const form = event.currentTarget;
     const data = new FormData(form);
-    const apiKey = VoidScout.storage.setApiKey(data.get("apiKey"));
+    const apiKey = OpenScout.storage.setApiKey(data.get("apiKey"));
     const location = String(data.get("location") || "").trim();
     const businessType = String(data.get("businessType") || "").trim();
     const depth = String(data.get("scanDepth") || "standard");
@@ -278,7 +278,7 @@
     const loader = startScanLoader(depth);
 
     try {
-      const searchPromise = VoidScout.googlePlaces.searchLeads({
+      const searchPromise = OpenScout.googlePlaces.searchLeads({
         apiKey,
         location,
         businessType,
@@ -296,7 +296,7 @@
       state.resultPage = 1;
 
       renderCurrentResults();
-      VoidScout.results.renderAttributions(document.querySelector("[data-attributions]"), state.leads);
+      OpenScout.results.renderAttributions(document.querySelector("[data-attributions]"), state.leads);
       updateStats();
 
       const leadCount = result.leads.length;
@@ -322,7 +322,7 @@
       return;
     }
 
-    VoidScout.exporter.downloadLeadsCsv(state.leads);
+    OpenScout.exporter.downloadLeadsCsv(state.leads);
   }
 
   function changeResultsPage(direction) {
@@ -333,7 +333,7 @@
   }
 
   function renderCurrentResults() {
-    VoidScout.results.renderResults(document.querySelector(selectors.results), state.leads, {
+    OpenScout.results.renderResults(document.querySelector(selectors.results), state.leads, {
       page: state.resultPage,
       pageSize: RESULTS_PAGE_SIZE,
     });
@@ -342,9 +342,9 @@
   async function guessLocation({ showErrors }) {
     const locationInput = document.querySelector('input[name="location"]');
     const guessButton = document.querySelector(selectors.guessLocation);
-    const apiKey = VoidScout.storage.getApiKey() || document.querySelector(selectors.apiKey).value.trim();
+    const apiKey = OpenScout.storage.getApiKey() || document.querySelector(selectors.apiKey).value.trim();
 
-    if (!VoidScout.location) {
+    if (!OpenScout.location) {
       return;
     }
 
@@ -352,14 +352,14 @@
     guessButton.textContent = "...";
 
     try {
-      const coords = await VoidScout.location.getBrowserLocation();
-      let label = VoidScout.location.formatCoordinates(coords);
+      const coords = await OpenScout.location.getBrowserLocation();
+      let label = OpenScout.location.formatCoordinates(coords);
 
       if (apiKey) {
         try {
-          label = await VoidScout.googlePlaces.reverseGeocodeLocation(apiKey, coords) || label;
+          label = await OpenScout.googlePlaces.reverseGeocodeLocation(apiKey, coords) || label;
         } catch {
-          label = VoidScout.location.formatCoordinates(coords);
+          label = OpenScout.location.formatCoordinates(coords);
         }
       }
 
@@ -422,7 +422,7 @@
     });
 
     async function fetchSuggestions(query) {
-      const apiKey = VoidScout.storage.getApiKey() || document.querySelector(selectors.apiKey).value.trim();
+      const apiKey = OpenScout.storage.getApiKey() || document.querySelector(selectors.apiKey).value.trim();
       const currentRequest = ++requestId;
 
       if (!apiKey) {
@@ -432,7 +432,7 @@
 
       try {
         sessionToken = sessionToken || null;
-        const suggestions = await VoidScout.googlePlaces.getLocationSuggestions({
+        const suggestions = await OpenScout.googlePlaces.getLocationSuggestions({
           apiKey,
           input: query,
           sessionToken,

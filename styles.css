@@ -1,28 +1,28 @@
 /* ===========================================================================
-   VoidScout — client-side lead finder
+   OpenScout — client-side lead finder
    Single source of truth for layout, spacing and theme.
    =========================================================================== */
 
 :root {
   /* Surfaces & ink */
-  --bg: #060606;
-  --panel: rgba(16, 16, 16, 0.66);
-  --panel-strong: rgba(12, 12, 12, 0.96);
-  --field: rgba(255, 255, 255, 0.04);
-  --field-hover: rgba(255, 255, 255, 0.07);
-  --line: rgba(255, 255, 255, 0.12);
-  --line-soft: rgba(255, 255, 255, 0.07);
+  --bg: #000000;
+  --panel: rgba(7, 9, 8, 0.72);
+  --panel-strong: rgba(2, 3, 3, 0.97);
+  --field: rgba(255, 255, 255, 0.045);
+  --field-hover: rgba(215, 255, 229, 0.08);
+  --line: rgba(231, 255, 238, 0.16);
+  --line-soft: rgba(255, 255, 255, 0.075);
 
-  --text: #f6f6f2;
-  --soft: #c9c9c4;
-  --muted: #8b8b85;
-  --faint: #5f5f5a;
+  --text: #ffffff;
+  --soft: #d8ded9;
+  --muted: #9ba39d;
+  --faint: #68716b;
 
-  --accent: #f5f5ee;
-  --accent-ink: #0c0c0c;
-  --gold: #ffd84a;
-  --green: #3ff7a5;
-  --amber: #ffb547;
+  --accent: #d9ffe8;
+  --accent-ink: #031108;
+  --gold: #f2f5de;
+  --green: #b7ffd4;
+  --amber: #e8f4c9;
   --danger: #ff6f61;
 
   /* Spacing scale */
@@ -47,22 +47,22 @@
 }
 
 body.light-mode {
-  --bg: #f4f2ec;
-  --panel: rgba(255, 255, 255, 0.72);
-  --panel-strong: rgba(255, 255, 255, 0.97);
-  --field: rgba(0, 0, 0, 0.035);
-  --field-hover: rgba(0, 0, 0, 0.06);
-  --line: rgba(10, 10, 10, 0.14);
-  --line-soft: rgba(10, 10, 10, 0.08);
+  --bg: #000000;
+  --panel: rgba(7, 9, 8, 0.72);
+  --panel-strong: rgba(2, 3, 3, 0.97);
+  --field: rgba(255, 255, 255, 0.045);
+  --field-hover: rgba(215, 255, 229, 0.08);
+  --line: rgba(231, 255, 238, 0.16);
+  --line-soft: rgba(255, 255, 255, 0.075);
 
-  --text: #131311;
-  --soft: #3c3a35;
-  --muted: #67645d;
-  --faint: #8d8a82;
+  --text: #ffffff;
+  --soft: #d8ded9;
+  --muted: #9ba39d;
+  --faint: #68716b;
 
-  --accent: #111111;
-  --accent-ink: #ffffff;
-  color-scheme: light;
+  --accent: #d9ffe8;
+  --accent-ink: #031108;
+  color-scheme: dark;
 }
 
 /* ---------------------------------------------------------------- Reset --- */
@@ -87,7 +87,7 @@ body {
 
 body.light-mode {
   background:
-    radial-gradient(circle at 78% 28%, rgba(0, 0, 0, 0.045), transparent 24rem),
+    radial-gradient(circle at 78% 28%, rgba(217, 255, 232, 0.045), transparent 24rem),
     var(--bg);
 }
 
@@ -147,8 +147,8 @@ input::placeholder {
 
 body.light-mode .flicker-layer {
   opacity: 0.4;
-  filter: invert(1);
-  mix-blend-mode: multiply;
+  filter: none;
+  mix-blend-mode: screen;
 }
 
 .wave-field {
@@ -488,7 +488,7 @@ body.light-mode .flicker-layer {
 }
 
 body.light-mode .business-modal-backdrop {
-  background: rgba(20, 18, 14, 0.34);
+  background: rgba(0, 0, 0, 0.62);
 }
 
 .business-modal-panel {
@@ -625,8 +625,8 @@ body.light-mode .business-modal-backdrop {
 }
 
 .business-option.is-selected {
-  border-color: rgba(63, 247, 165, 0.45);
-  background: rgba(63, 247, 165, 0.12);
+  border-color: rgba(183, 255, 212, 0.45);
+  background: rgba(183, 255, 212, 0.12);
   color: var(--text);
 }
 
@@ -679,12 +679,12 @@ body.light-mode .business-modal-backdrop {
   height: 0.5rem;
   border-radius: 50%;
   background: var(--gold);
-  box-shadow: 0 0 12px rgba(255, 216, 74, 0.65);
+  box-shadow: 0 0 12px rgba(217, 255, 232, 0.55);
 }
 
 .status-dot.ready {
   background: var(--green);
-  box-shadow: 0 0 12px rgba(63, 247, 165, 0.6);
+  box-shadow: 0 0 12px rgba(183, 255, 212, 0.55);
 }
 
 /* --------------------------------------------------------- Results panel --- */
@@ -719,7 +719,7 @@ body.light-mode .business-modal-backdrop {
 }
 
 body.light-mode .scan-loader {
-  background: rgba(244, 242, 236, 0.9);
+  background: rgba(8, 8, 8, 0.84);
 }
 
 .scan-loader[hidden] {
@@ -845,10 +845,10 @@ body.light-mode .scan-loader {
 
 .notice {
   padding: var(--s-3) var(--s-4);
-  border: 1px solid rgba(255, 216, 74, 0.25);
+  border: 1px solid rgba(242, 245, 222, 0.22);
   border-radius: var(--r-sm);
-  background: rgba(255, 216, 74, 0.08);
-  color: #f2dd83;
+  background: rgba(242, 245, 222, 0.08);
+  color: #eef5d7;
   font-size: 0.88rem;
   line-height: 1.4;
 }
@@ -880,7 +880,7 @@ body.light-mode .scan-loader {
 }
 
 body.light-mode .result-card {
-  background: rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.025);
 }
 
 @keyframes card-in {
@@ -910,10 +910,10 @@ body.light-mode .result-card {
 .badge {
   flex: 0 0 auto;
   padding: 0.26rem 0.5rem;
-  border: 1px solid rgba(63, 247, 165, 0.4);
+  border: 1px solid rgba(183, 255, 212, 0.4);
   border-radius: var(--r-pill);
-  background: rgba(63, 247, 165, 0.1);
-  color: #aafbd3;
+  background: rgba(183, 255, 212, 0.1);
+  color: #d9ffe8;
   font-size: 0.64rem;
   font-weight: 900;
   letter-spacing: 0.03em;
@@ -922,9 +922,9 @@ body.light-mode .result-card {
 }
 
 .badge.is-weak {
-  border-color: rgba(255, 181, 71, 0.4);
-  background: rgba(255, 181, 71, 0.1);
-  color: #ffd49a;
+  border-color: rgba(232, 244, 201, 0.35);
+  background: rgba(232, 244, 201, 0.09);
+  color: #edf5d1;
 }
 
 .result-rating {
@@ -1130,7 +1130,7 @@ body.light-mode .result-card {
 
 /* --------------------------------------------------------------- Landing ---
    Onboarding page in front of the tool (app.html). Assumes the visitor has
-   never seen VoidScout: hero → how it works → FAQ → footer. Theme tokens only,
+   never seen OpenScout: hero → how it works → FAQ → footer. Theme tokens only,
    so light-mode adapts automatically. */
 
 .landing-page {
