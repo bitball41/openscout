@@ -14,7 +14,7 @@
       links: [
         {
           label: "Get a Google Maps API key",
-          href: "methods.html#api-key",
+          href: "methods.html",
           ariaLabel: "How to get a Google Maps API key",
         },
         {
