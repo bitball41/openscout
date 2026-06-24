@@ -859,52 +859,142 @@ body.light-mode .scan-loader {
   color: #ffb1a9;
 }
 
-/* Results grid + cards */
+/* Animated lead list */
 .results-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   align-content: start;
-  gap: var(--s-3);
+  gap: var(--s-2);
+  position: relative;
+  min-height: 0;
   overflow: auto;
+  padding: var(--s-2);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r-md);
+  background:
+    linear-gradient(to bottom, rgba(2, 3, 3, 0.95), transparent 4rem) top / 100% 4rem no-repeat,
+    linear-gradient(to top, rgba(2, 3, 3, 0.95), transparent 5rem) bottom / 100% 5rem no-repeat,
+    rgba(255, 255, 255, 0.018);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(217, 255, 232, 0.35) rgba(255, 255, 255, 0.04);
+}
+
+.results-grid.has-results {
+  mask-image: linear-gradient(to bottom, transparent 0, #000 1.2rem, #000 calc(100% - 2rem), transparent 100%);
+}
+
+.results-grid:focus {
+  outline: 1px solid rgba(217, 255, 232, 0.4);
+  outline-offset: 3px;
+}
+
+.results-grid::-webkit-scrollbar {
+  width: 8px;
+}
+
+.results-grid::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: var(--r-pill);
+}
+
+.results-grid::-webkit-scrollbar-thumb {
+  background: rgba(217, 255, 232, 0.35);
+  border-radius: var(--r-pill);
 }
 
 .result-card {
+  --row-bg: rgba(255, 255, 255, 0.035);
   display: grid;
-  grid-template-rows: auto auto 1fr auto;
-  gap: var(--s-2);
-  padding: var(--s-4);
-  border: 1px solid var(--line);
-  border-radius: var(--r-md);
-  background: rgba(255, 255, 255, 0.025);
-  animation: card-in 360ms ease both;
+  grid-template-columns: 2.4rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--s-3);
+  min-height: 6.7rem;
+  padding: var(--s-3);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r-sm);
+  background:
+    linear-gradient(100deg, rgba(183, 255, 212, 0.08), transparent 32%),
+    var(--row-bg);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+  cursor: pointer;
+  transform-origin: center;
+  animation: lead-row-in 340ms ease both;
+  transition:
+    background 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
 }
 
 body.light-mode .result-card {
-  background: rgba(255, 255, 255, 0.025);
+  background:
+    linear-gradient(100deg, rgba(183, 255, 212, 0.08), transparent 32%),
+    var(--row-bg);
 }
 
-@keyframes card-in {
+.result-card:hover,
+.result-card.is-selected,
+.result-card:focus {
+  border-color: rgba(217, 255, 232, 0.32);
+  background:
+    linear-gradient(100deg, rgba(183, 255, 212, 0.15), transparent 38%),
+    rgba(255, 255, 255, 0.055);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 16px 42px rgba(0, 0, 0, 0.24);
+  transform: translateY(-1px) scale(1.01);
+}
+
+.result-card:focus {
+  outline: 0;
+}
+
+@keyframes lead-row-in {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(14px) scale(0.96);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
-.result-head {
+.result-rank {
+  display: grid;
+  place-items: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border: 1px solid rgba(217, 255, 232, 0.22);
+  border-radius: var(--r-sm);
+  background: rgba(217, 255, 232, 0.06);
+  color: var(--accent);
+  font-size: 0.76rem;
+  font-weight: 900;
+}
+
+.result-body {
+  display: grid;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.result-summary {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: var(--s-2);
+  min-width: 0;
 }
 
 .result-name {
-  font-size: 1.05rem;
-  line-height: 1.2;
-  font-weight: 700;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 1rem;
+  line-height: 1.18;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .badge {
@@ -927,30 +1017,43 @@ body.light-mode .result-card {
   color: #edf5d1;
 }
 
+.result-insight {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem var(--s-3);
+  min-width: 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.result-insight > span:first-child {
+  overflow: hidden;
+  max-width: min(42ch, 100%);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .result-rating {
-  color: var(--soft);
-  font-size: 0.82rem;
+  color: var(--gold);
+  font-size: 0.8rem;
   font-weight: 600;
 }
 
-.result-rating .stars {
-  color: var(--gold);
-}
-
 .result-meta {
-  display: grid;
-  gap: 0.4rem;
-  align-content: start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem var(--s-3);
   margin: 0;
   color: var(--soft);
-  font-size: 0.86rem;
+  font-size: 0.78rem;
   line-height: 1.35;
 }
 
 .meta-row {
-  display: grid;
-  grid-template-columns: 3.6rem minmax(0, 1fr);
-  gap: var(--s-2);
+  display: flex;
+  gap: 0.35rem;
+  min-width: 0;
 }
 
 .meta-row dt {
@@ -963,6 +1066,11 @@ body.light-mode .result-card {
 
 .meta-row dd {
   margin: 0;
+  max-width: 24ch;
+  overflow: hidden;
+  color: var(--soft);
+  text-overflow: ellipsis;
+  white-space: nowrap;
   word-break: break-word;
 }
 
@@ -972,20 +1080,30 @@ body.light-mode .result-card {
   text-underline-offset: 0.18rem;
 }
 
-.result-foot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.result-actions {
+  display: grid;
+  justify-items: end;
   gap: var(--s-2);
-  margin-top: var(--s-1);
 }
 
 .maps-link {
+  display: inline-grid;
+  place-items: center;
+  min-height: 2.25rem;
+  padding: 0 var(--s-3);
+  border: 1px solid rgba(217, 255, 232, 0.25);
+  border-radius: var(--r-sm);
+  background: rgba(217, 255, 232, 0.08);
   color: var(--text);
   font-size: 0.8rem;
   font-weight: 800;
-  text-decoration: underline;
-  text-underline-offset: 0.18rem;
+  text-decoration: none;
+  transition: background 160ms ease, border-color 160ms ease;
+}
+
+.maps-link:hover {
+  background: rgba(217, 255, 232, 0.14);
+  border-color: rgba(217, 255, 232, 0.42);
 }
 
 .status-flag {
@@ -1106,6 +1224,21 @@ body.light-mode .result-card {
   .business-options,
   .business-group-options {
     grid-template-columns: 1fr;
+  }
+
+  .result-card {
+    grid-template-columns: 2rem minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .result-rank {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .result-actions {
+    grid-column: 2;
+    justify-items: start;
   }
 
   .api-input-wrap {
