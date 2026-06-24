@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VoidScout | Find Businesses Without Websites</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="flicker-layer" aria-hidden="true">
+      <canvas data-flickering-grid></canvas>
+    </div>
+    <div class="wave-field" aria-hidden="true" hidden>
+      <svg class="wave wave-a" viewBox="0 0 1600 900" preserveAspectRatio="none">
+        <path d="M-40 160 C 220 210 360 220 560 185 S 870 95 1100 145 S 1360 180 1640 130" />
+        <path d="M-40 176 C 230 226 360 236 565 200 S 875 110 1105 160 S 1365 196 1640 145" />
+        <path d="M-40 192 C 235 242 365 252 570 215 S 880 125 1110 175 S 1370 212 1640 160" />
+        <path d="M-40 208 C 240 258 370 268 575 230 S 885 140 1115 190 S 1375 228 1640 175" />
+      </svg>
+      <svg class="wave wave-b" viewBox="0 0 1600 900" preserveAspectRatio="none">
+        <path d="M-80 420 C 120 350 300 355 480 405 S 760 520 985 445 S 1260 315 1680 390" />
+        <path d="M-80 438 C 130 370 305 374 485 423 S 765 538 990 463 S 1265 333 1680 408" />
+        <path d="M-80 456 C 140 390 310 392 490 441 S 770 556 995 481 S 1270 351 1680 426" />
+        <path d="M-80 474 C 150 410 315 410 495 459 S 775 574 1000 499 S 1275 369 1680 444" />
+      </svg>
+      <svg class="wave wave-c" viewBox="0 0 1600 900" preserveAspectRatio="none">
+        <path d="M-100 760 C 150 610 335 600 520 690 S 805 865 1040 755 S 1340 600 1700 730" />
+        <path d="M-100 780 C 160 635 345 625 530 710 S 815 885 1050 775 S 1350 625 1700 750" />
+        <path d="M-100 800 C 170 660 355 650 540 730 S 825 905 1060 795 S 1360 650 1700 770" />
+        <path d="M-100 820 C 180 685 365 675 550 750 S 835 925 1070 815 S 1370 675 1700 790" />
+      </svg>
+    </div>
+
+    <div data-card-nav></div>
+
+    <main class="app-shell" id="top">
+      <section class="lead-panel reveal" id="hunt">
+        <h1>Find Your Next Client.</h1>
+        <p class="hero-copy">Find local businesses without websites.</p>
+
+        <form class="search-panel" data-lead-form>
+          <div class="api-row">
+            <label for="api-key">Google Maps API key</label>
+            <div class="api-input-wrap">
+              <input
+                id="api-key"
+                name="apiKey"
+                type="password"
+                autocomplete="off"
+                placeholder="Paste your browser API key"
+              />
+              <button class="ghost-button" type="button" data-save-key>Save</button>
+            </div>
+            <p class="microcopy">Stored only in this browser with localStorage.</p>
+          </div>
+
+          <div class="scan-row">
+            <label class="field">
+              <span>Location</span>
+              <span class="location-control" data-location-picker>
+                <input name="location" type="text" placeholder="Auto-guessing..." />
+                <button class="mini-button" type="button" data-guess-location>Guess</button>
+                <div class="location-suggestions" data-location-suggestions hidden></div>
+              </span>
+            </label>
+            <label class="field">
+              <span>Business type</span>
+              <div class="business-picker" data-business-picker>
+                <select class="native-select" name="businessType" data-business-select aria-hidden="true" tabindex="-1">
+                <option value="">Choose a business type</option>
+                <optgroup label="Popular">
+                  <option value="barbers">Barbershops</option>
+                  <option value="plumbers">Plumbing companies</option>
+                  <option value="roofers">Roofing companies</option>
+                  <option value="electricians">Electricians</option>
+                  <option value="HVAC contractors">HVAC companies</option>
+                  <option value="dentists">Dentists</option>
+                  <option value="hair salons">Hair salons</option>
+                  <option value="nail salons">Nail salons</option>
+                  <option value="auto repair shops">Auto repair shops</option>
+                  <option value="restaurants">Restaurants</option>
+                  <option value="coffee shops">Coffee shops</option>
+                  <option value="landscapers">Landscapers</option>
+                </optgroup>
+                <optgroup label="Home Services">
+                  <option value="roofers">Roofers</option>
+                  <option value="plumbers">Plumbers</option>
+                  <option value="electricians">Electricians</option>
+                  <option value="HVAC contractors">HVAC contractors</option>
+                  <option value="landscapers">Landscapers</option>
+                  <option value="lawn care services">Lawn care services</option>
+                  <option value="tree services">Tree services</option>
+                  <option value="fence contractors">Fence contractors</option>
+                  <option value="deck builders">Deck builders</option>
+                  <option value="painters">Painters</option>
+                  <option value="drywall contractors">Drywall contractors</option>
+                  <option value="flooring contractors">Flooring contractors</option>
+                  <option value="carpet cleaners">Carpet cleaners</option>
+                  <option value="house cleaners">House cleaners</option>
+                  <option value="window cleaners">Window cleaners</option>
+                  <option value="pressure washing services">Pressure washing services</option>
+                  <option value="gutter cleaning services">Gutter cleaning services</option>
+                  <option value="pest control services">Pest control services</option>
+                  <option value="garage door repair services">Garage door repair services</option>
+                  <option value="locksmiths">Locksmiths</option>
+                  <option value="handyman services">Handyman services</option>
+                  <option value="home inspectors">Home inspectors</option>
+                  <option value="pool cleaning services">Pool cleaning services</option>
+                  <option value="septic services">Septic services</option>
+                  <option value="water damage restoration services">Water damage restoration services</option>
+                </optgroup>
+                <optgroup label="Health & Wellness">
+                  <option value="dentists">Dentists</option>
+                  <option value="orthodontists">Orthodontists</option>
+                  <option value="chiropractors">Chiropractors</option>
+                  <option value="physical therapists">Physical therapists</option>
+                  <option value="massage therapists">Massage therapists</option>
+                  <option value="acupuncture clinics">Acupuncture clinics</option>
+                  <option value="optometrists">Optometrists</option>
+                  <option value="podiatrists">Podiatrists</option>
+                  <option value="urgent care clinics">Urgent care clinics</option>
+                  <option value="medical clinics">Medical clinics</option>
+                  <option value="counseling services">Counseling services</option>
+                  <option value="nutritionists">Nutritionists</option>
+                  <option value="personal trainers">Personal trainers</option>
+                  <option value="yoga studios">Yoga studios</option>
+                  <option value="pilates studios">Pilates studios</option>
+                  <option value="gyms">Gyms</option>
+                  <option value="med spas">Med spas</option>
+                  <option value="skin care clinics">Skin care clinics</option>
+                  <option value="hearing aid stores">Hearing aid stores</option>
+                  <option value="home health care services">Home health care services</option>
+                </optgroup>
+                <optgroup label="Beauty & Personal Care">
+                  <option value="hair salons">Hair salons</option>
+                  <option value="barbers">Barbers</option>
+                  <option value="nail salons">Nail salons</option>
+                  <option value="beauty salons">Beauty salons</option>
+                  <option value="lash studios">Lash studios</option>
+                  <option value="brow studios">Brow studios</option>
+                  <option value="makeup artists">Makeup artists</option>
+                  <option value="tattoo shops">Tattoo shops</option>
+                  <option value="piercing shops">Piercing shops</option>
+                  <option value="tanning salons">Tanning salons</option>
+                  <option value="waxing salons">Waxing salons</option>
+                  <option value="esthetician services">Esthetician services</option>
+                  <option value="day spas">Day spas</option>
+                  <option value="braiding salons">Braiding salons</option>
+                  <option value="cosmetic tattoo services">Cosmetic tattoo services</option>
+                </optgroup>
+                <optgroup label="Food & Hospitality">
+                  <option value="restaurants">Restaurants</option>
+                  <option value="cafes">Cafes</option>
+                  <option value="coffee shops">Coffee shops</option>
+                  <option value="bakeries">Bakeries</option>
+                  <option value="food trucks">Food trucks</option>
+                  <option value="caterers">Caterers</option>
+                  <option value="bars">Bars</option>
+                  <option value="breweries">Breweries</option>
+                  <option value="wineries">Wineries</option>
+                  <option value="ice cream shops">Ice cream shops</option>
+                  <option value="juice bars">Juice bars</option>
+                  <option value="delis">Delis</option>
+                  <option value="pizza restaurants">Pizza restaurants</option>
+                  <option value="breakfast restaurants">Breakfast restaurants</option>
+                  <option value="seafood restaurants">Seafood restaurants</option>
+                  <option value="barbecue restaurants">Barbecue restaurants</option>
+                  <option value="hotels">Hotels</option>
+                  <option value="motels">Motels</option>
+                  <option value="bed and breakfasts">Bed and breakfasts</option>
+                  <option value="event venues">Event venues</option>
+                </optgroup>
+                <optgroup label="Automotive">
+                  <option value="auto repair shops">Auto repair shops</option>
+                  <option value="mechanics">Mechanics</option>
+                  <option value="body shops">Body shops</option>
+                  <option value="tire shops">Tire shops</option>
+                  <option value="oil change services">Oil change services</option>
+                  <option value="car washes">Car washes</option>
+                  <option value="auto detailers">Auto detailers</option>
+                  <option value="towing services">Towing services</option>
+                  <option value="transmission shops">Transmission shops</option>
+                  <option value="brake shops">Brake shops</option>
+                  <option value="windshield repair services">Windshield repair services</option>
+                  <option value="used car dealers">Used car dealers</option>
+                  <option value="motorcycle repair shops">Motorcycle repair shops</option>
+                  <option value="boat repair shops">Boat repair shops</option>
+                  <option value="RV repair shops">RV repair shops</option>
+                </optgroup>
+                <optgroup label="Professional Services">
+                  <option value="accountants">Accountants</option>
+                  <option value="bookkeepers">Bookkeepers</option>
+                  <option value="tax preparers">Tax preparers</option>
+                  <option value="law firms">Law firms</option>
+                  <option value="real estate agents">Real estate agents</option>
+                  <option value="insurance agents">Insurance agents</option>
+                  <option value="financial advisors">Financial advisors</option>
+                  <option value="mortgage brokers">Mortgage brokers</option>
+                  <option value="notary services">Notary services</option>
+                  <option value="business consultants">Business consultants</option>
+                  <option value="marketing agencies">Marketing agencies</option>
+                  <option value="photographers">Photographers</option>
+                  <option value="videographers">Videographers</option>
+                  <option value="graphic designers">Graphic designers</option>
+                  <option value="printing services">Printing services</option>
+                </optgroup>
+                <optgroup label="Retail & Specialty">
+                  <option value="boutiques">Boutiques</option>
+                  <option value="florists">Florists</option>
+                  <option value="gift shops">Gift shops</option>
+                  <option value="furniture stores">Furniture stores</option>
+                  <option value="mattress stores">Mattress stores</option>
+                  <option value="appliance stores">Appliance stores</option>
+                  <option value="hardware stores">Hardware stores</option>
+                  <option value="pet stores">Pet stores</option>
+                  <option value="bicycle shops">Bicycle shops</option>
+                  <option value="sporting goods stores">Sporting goods stores</option>
+                  <option value="jewelry stores">Jewelry stores</option>
+                  <option value="thrift stores">Thrift stores</option>
+                  <option value="vape shops">Vape shops</option>
+                  <option value="liquor stores">Liquor stores</option>
+                  <option value="music stores">Music stores</option>
+                </optgroup>
+                <optgroup label="Pets, Kids & Local">
+                  <option value="veterinarians">Veterinarians</option>
+                  <option value="pet groomers">Pet groomers</option>
+                  <option value="dog trainers">Dog trainers</option>
+                  <option value="pet boarding services">Pet boarding services</option>
+                  <option value="daycares">Daycares</option>
+                  <option value="preschools">Preschools</option>
+                  <option value="tutoring services">Tutoring services</option>
+                  <option value="dance studios">Dance studios</option>
+                  <option value="martial arts schools">Martial arts schools</option>
+                  <option value="music schools">Music schools</option>
+                  <option value="driving schools">Driving schools</option>
+                  <option value="party rental services">Party rental services</option>
+                  <option value="moving companies">Moving companies</option>
+                  <option value="storage facilities">Storage facilities</option>
+                  <option value="funeral homes">Funeral homes</option>
+                </optgroup>
+              </select>
+                <button class="business-trigger" type="button" data-business-trigger aria-haspopup="listbox" aria-expanded="false">
+                  <span data-business-label>Choose a business type</span>
+                  <span aria-hidden="true">▾</span>
+                </button>
+                <div class="business-modal" data-business-menu hidden>
+                  <div class="business-modal-backdrop" data-business-backdrop></div>
+                  <div class="business-modal-panel" role="dialog" aria-modal="true" aria-label="Choose a business type">
+                    <div class="business-modal-head">
+                      <div class="business-modal-title">
+                        <strong>Choose a business type</strong>
+                        <button class="modal-close" type="button" data-business-close aria-label="Close">✕</button>
+                      </div>
+                      <div class="business-search-row">
+                        <input type="search" data-business-search placeholder="Search 140 business types..." autocomplete="off" />
+                        <button class="mini-button" type="button" data-business-clear>Clear</button>
+                      </div>
+                    </div>
+                    <div class="business-options" data-business-options role="listbox" aria-label="Business type"></div>
+                  </div>
+                </div>
+              </div>
+            </label>
+            <div class="depth-row">
+              <span class="depth-label">Scan depth</span>
+              <div class="depth-options" role="radiogroup" aria-label="Scan depth">
+                <label>
+                  <input type="radio" name="scanDepth" value="quick" />
+                  <span>Quick</span>
+                </label>
+                <label>
+                  <input type="radio" name="scanDepth" value="standard" checked />
+                  <span>Standard</span>
+                </label>
+                <label>
+                  <input type="radio" name="scanDepth" value="deep" />
+                  <span>Deep</span>
+                </label>
+              </div>
+              <p class="microcopy" data-depth-hint>Standard scans a 3×3 grid (~9 API calls). More depth finds more leads but uses more of your Google quota.</p>
+            </div>
+
+            <button class="scan-button" type="submit">
+              <span aria-hidden="true">⌕</span>
+              Scan
+            </button>
+          </div>
+
+          <div class="panel-footer">
+            <span class="status-dot"></span>
+            <span data-key-status>No saved key</span>
+          </div>
+        </form>
+      </section>
+
+      <section class="results-section reveal" id="results">
+        <div class="section-heading">
+          <div>
+            <h2>Leads</h2>
+            <span class="lead-tally" data-lead-tally hidden></span>
+          </div>
+          <button class="export-button" type="button" data-export-csv disabled>Export CSV</button>
+        </div>
+
+        <div class="notice" data-message hidden></div>
+        <div class="results-grid" data-results>
+          <article class="empty-state">
+            <span>⌁</span>
+            <h3>No leads yet</h3>
+            <p>Enter a location and business type above to start scanning.</p>
+          </article>
+        </div>
+        <div class="results-pager" data-results-pager hidden>
+          <span data-results-page-label></span>
+          <div>
+            <button class="export-button" type="button" data-results-prev>Prev</button>
+            <button class="export-button" type="button" data-results-next>Next</button>
+          </div>
+        </div>
+        <div class="attribution-list" data-attributions hidden></div>
+
+        <div class="scan-loader" data-scan-loader hidden aria-live="polite">
+          <div class="loader-spinner" aria-hidden="true"></div>
+          <p class="loader-stage" data-loader-stage></p>
+          <ul class="loader-steps" data-loader-steps></ul>
+          <div class="loader-track" aria-hidden="true">
+            <div class="loader-bar" data-loader-bar></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="js/cardNav.js" defer></script>
+    <script src="js/storage.js" defer></script>
+    <script src="js/location.js" defer></script>
+    <script src="js/flickeringGrid.js" defer></script>
+    <script src="js/googlePlaces.js" defer></script>
+    <script src="js/results.js" defer></script>
+    <script src="js/export.js" defer></script>
+    <script src="js/app.js" defer></script>
+  </body>
+</html>

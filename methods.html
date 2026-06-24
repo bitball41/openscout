@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VoidScout | Methods</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="landing-page">
+    <div class="flicker-layer" aria-hidden="true">
+      <canvas data-flickering-grid></canvas>
+    </div>
+
+    <div data-card-nav></div>
+
+    <main class="landing methods-page" id="top">
+      <section class="methods-hero">
+        <p class="landing-eyebrow">Methods</p>
+        <h1>How VoidScout finds businesses without websites.</h1>
+        <p class="landing-sub">
+          VoidScout runs entirely in your browser. You provide your own Google
+          Maps key, choose a location and business type, then the app searches
+          nearby map results and filters for businesses that still need a real
+          website.
+        </p>
+        <div class="landing-cta">
+          <a class="primary-cta" href="app.html">
+            <span aria-hidden="true">Go</span>
+            Start scanning
+          </a>
+          <a class="ghost-cta" href="#api-key">Get an API key</a>
+        </div>
+      </section>
+
+      <section class="landing-section methods-section" id="api-key">
+        <header class="landing-section-head">
+          <h2>Get a Google Maps API key</h2>
+          <p>Use this checklist in order. Every link you need is here.</p>
+        </header>
+
+        <ol class="methods-list">
+          <li>
+            <span class="step-num">1</span>
+            <div>
+              <strong>Open Google Maps Platform and choose a project</strong>
+              <p>
+                Sign in with the Google account you want to own the key. If you
+                already have a Cloud project, select it. If not, create a fresh
+                project named something obvious, like "VoidScout Leads".
+              </p>
+              <div class="method-substeps">
+                <span>Open:</span>
+                <a href="https://console.cloud.google.com/google/maps-apis/start" target="_blank" rel="noreferrer">Google Maps Platform setup</a>
+                <a href="https://console.cloud.google.com/projectcreate" target="_blank" rel="noreferrer">Create a Google Cloud project</a>
+                <a href="https://developers.google.com/maps/get-started" target="_blank" rel="noreferrer">Official getting started guide</a>
+              </div>
+            </div>
+          </li>
+          <li>
+            <span class="step-num">2</span>
+            <div>
+              <strong>Attach billing before you scan</strong>
+              <p>
+                Google Maps Platform requires billing on the project for normal
+                Maps, Places, and Geocoding usage. Add a billing account, then
+                set a small budget alert so you get emailed before spending more
+                than expected.
+              </p>
+              <div class="method-substeps">
+                <span>Open:</span>
+                <a href="https://console.cloud.google.com/billing" target="_blank" rel="noreferrer">Cloud Billing</a>
+                <a href="https://console.cloud.google.com/billing/budgets" target="_blank" rel="noreferrer">Budgets and alerts</a>
+                <a href="https://developers.google.com/maps/billing-and-pricing/manage-costs" target="_blank" rel="noreferrer">Manage Maps costs</a>
+                <a href="https://docs.cloud.google.com/billing/docs/how-to/budgets" target="_blank" rel="noreferrer">Budget alert instructions</a>
+              </div>
+            </div>
+          </li>
+          <li>
+            <span class="step-num">3</span>
+            <div>
+              <strong>Enable the three APIs VoidScout needs</strong>
+              <p>
+                Enable all three on the same project: Maps JavaScript API loads
+                Google Maps in the browser, Places API powers search and
+                autocomplete, and Geocoding API turns typed cities or the Guess
+                button into coordinates.
+              </p>
+              <div class="method-substeps">
+                <span>Enable:</span>
+                <a href="https://console.cloud.google.com/apis/library/maps-backend.googleapis.com" target="_blank" rel="noreferrer">Maps JavaScript API</a>
+                <a href="https://console.cloud.google.com/apis/library/places.googleapis.com" target="_blank" rel="noreferrer">Places API</a>
+                <a href="https://console.cloud.google.com/apis/library/geocoding-backend.googleapis.com" target="_blank" rel="noreferrer">Geocoding API</a>
+                <a href="https://console.cloud.google.com/apis/library" target="_blank" rel="noreferrer">API Library search</a>
+              </div>
+              <div class="method-substeps">
+                <span>Docs:</span>
+                <a href="https://developers.google.com/maps/documentation/javascript/get-api-key" target="_blank" rel="noreferrer">Maps JavaScript setup</a>
+                <a href="https://developers.google.com/maps/documentation/places/web-service/get-api-key" target="_blank" rel="noreferrer">Places setup</a>
+                <a href="https://developers.google.com/maps/documentation/geocoding/guides-v3/get-api-key" target="_blank" rel="noreferrer">Geocoding setup</a>
+              </div>
+            </div>
+          </li>
+          <li>
+            <span class="step-num">4</span>
+            <div>
+              <strong>Create the API key</strong>
+              <p>
+                Open Credentials, click Create credentials, then API key. Copy
+                the key when Google shows it, but do not paste it into public
+                code, GitHub, Discord, or screenshots.
+              </p>
+              <div class="method-substeps">
+                <span>Open:</span>
+                <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noreferrer">Credentials page</a>
+                <a href="https://developers.google.com/maps/get-started#create-api-key" target="_blank" rel="noreferrer">Create API key docs</a>
+              </div>
+            </div>
+          </li>
+          <li>
+            <span class="step-num">5</span>
+            <div>
+              <strong>Restrict the key before using it publicly</strong>
+              <p>
+                Click the key you just created. Under Application restrictions,
+                choose Websites and add your allowed URLs. For a hosted site,
+                use your real domain, such as https://example.com/*. For local
+                testing, add http://localhost:*/* and http://127.0.0.1:*/*.
+                Under API restrictions, choose Restrict key and allow only Maps
+                JavaScript API, Places API, and Geocoding API.
+              </p>
+              <div class="method-substeps">
+                <span>Open:</span>
+                <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noreferrer">Edit API keys</a>
+                <a href="https://developers.google.com/maps/api-security-best-practices" target="_blank" rel="noreferrer">API key security guide</a>
+                <a href="https://developers.google.com/maps/documentation/javascript/error-messages" target="_blank" rel="noreferrer">Maps key error messages</a>
+                <a href="https://developers.google.com/maps/documentation/javascript/load-maps-js-api" target="_blank" rel="noreferrer">HTTP referrer notes</a>
+              </div>
+            </div>
+          </li>
+          <li>
+            <span class="step-num">6</span>
+            <div>
+              <strong>Paste it into VoidScout</strong>
+              <p>
+                Paste the key on the scan page and press Save. It is stored in
+                this browser only with localStorage. VoidScout does not have a
+                backend, account system, or database.
+              </p>
+              <div class="method-substeps">
+                <span>Open:</span>
+                <a href="app.html#hunt">VoidScout scan page</a>
+                <a href="#troubleshooting">Troubleshooting on this page</a>
+              </div>
+            </div>
+          </li>
+          <li>
+            <span class="step-num">7</span>
+            <div>
+              <strong>Watch usage after your first scan</strong>
+              <p>
+                Run one Quick scan, then check Google Maps usage reports. If the
+                scan worked, try Standard. Use quotas or budget alerts if you
+                want stronger guardrails while testing.
+              </p>
+              <div class="method-substeps">
+                <span>Open:</span>
+                <a href="https://console.cloud.google.com/google/maps-apis/metrics" target="_blank" rel="noreferrer">Maps usage metrics</a>
+                <a href="https://console.cloud.google.com/google/maps-apis/quotas" target="_blank" rel="noreferrer">Maps quotas</a>
+                <a href="https://developers.google.com/maps/reporting-and-monitoring/reporting" target="_blank" rel="noreferrer">Reporting guide</a>
+                <a href="https://developers.google.com/maps/billing-and-pricing/pricing" target="_blank" rel="noreferrer">Pricing list</a>
+              </div>
+            </div>
+          </li>
+        </ol>
+
+        <div class="methods-callout">
+          <strong>Recommended setup for VoidScout</strong>
+          <p>
+            Use one dedicated browser API key for VoidScout, restrict it to
+            your website or localhost testing URLs, restrict it to the three APIs
+            above, create a budget alert, and start with Quick scans until you
+            can see your real usage pattern.
+          </p>
+          <div class="methods-links">
+            <a href="https://console.cloud.google.com/google/maps-apis/start" target="_blank" rel="noreferrer">Start setup</a>
+            <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noreferrer">Credentials</a>
+            <a href="https://console.cloud.google.com/billing/budgets" target="_blank" rel="noreferrer">Budget alerts</a>
+            <a href="https://console.cloud.google.com/google/maps-apis/metrics" target="_blank" rel="noreferrer">Usage metrics</a>
+            <a href="https://developers.google.com/maps/documentation/javascript/get-api-key" target="_blank" rel="noreferrer">Maps JavaScript setup</a>
+            <a href="https://developers.google.com/maps/documentation/places/web-service/get-api-key" target="_blank" rel="noreferrer">Places setup</a>
+            <a href="https://developers.google.com/maps/documentation/geocoding/guides-v3/get-api-key" target="_blank" rel="noreferrer">Geocoding setup</a>
+            <a href="https://developers.google.com/maps/api-security-best-practices" target="_blank" rel="noreferrer">Key security</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="landing-section methods-section" id="scan-depth">
+        <header class="landing-section-head">
+          <h2>Scan depth explained</h2>
+          <p>Depth changes the size of the search grid and the number of map searches.</p>
+        </header>
+
+        <div class="depth-table" role="table" aria-label="Scan depth comparison">
+          <div class="depth-row-head" role="row">
+            <span role="columnheader">Mode</span>
+            <span role="columnheader">Grid</span>
+            <span role="columnheader">Area cap</span>
+            <span role="columnheader">Best for</span>
+          </div>
+          <div role="row">
+            <strong role="cell">Quick</strong>
+            <span role="cell">2 x 2</span>
+            <span role="cell">12 km radius</span>
+            <span role="cell">Testing a key or checking a small town.</span>
+          </div>
+          <div role="row">
+            <strong role="cell">Standard</strong>
+            <span role="cell">3 x 3</span>
+            <span role="cell">18 km radius</span>
+            <span role="cell">Most normal city searches.</span>
+          </div>
+          <div role="row">
+            <strong role="cell">Deep</strong>
+            <span role="cell">5 x 5</span>
+            <span role="cell">28 km radius</span>
+            <span role="cell">Wider metro areas and harder niches.</span>
+          </div>
+        </div>
+
+        <div class="methods-grid">
+          <article class="method-note">
+            <strong>Why a grid?</strong>
+            <p>
+              Google place searches return a limited set of results for each
+              request. VoidScout slices the area into smaller cells so it can
+              discover more businesses than one broad search would show.
+            </p>
+          </article>
+          <article class="method-note">
+            <strong>How leads are filtered</strong>
+            <p>
+              A business is counted as a lead when Google has no website for it,
+              or when the listed website is only a social profile, directory
+              page, link-in-bio, or auto-built mini site.
+            </p>
+          </article>
+          <article class="method-note">
+            <strong>What the export includes</strong>
+            <p>
+              CSV exports include the business name, address, phone, rating,
+              review count, Google Maps URL, and the reason it was marked as a
+              lead.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section class="landing-section methods-section" id="troubleshooting">
+        <header class="landing-section-head">
+          <h2>Troubleshooting</h2>
+          <p>Most scan problems come from key setup, restrictions, or quota.</p>
+        </header>
+
+        <div class="landing-faq">
+          <div class="faq-item">
+            <strong>The map library will not load</strong>
+            <p>
+              Check that the Maps JavaScript API is enabled and that your HTTP
+              referrer restriction matches the site where VoidScout is running.
+            </p>
+          </div>
+          <div class="faq-item">
+            <strong>Location suggestions are empty</strong>
+            <p>
+              Save your API key first, then confirm Places API access is enabled
+              for that key.
+            </p>
+          </div>
+          <div class="faq-item">
+            <strong>Typed locations fail</strong>
+            <p>
+              Enable Geocoding API and try a more specific query like "Austin,
+              TX" or "Cook County, IL".
+            </p>
+          </div>
+          <div class="faq-item">
+            <strong>Deep scans feel slow</strong>
+            <p>
+              Deep mode runs 25 map searches. Use Standard for daily work, then
+              switch to Deep when a niche or metro area needs more coverage.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <footer class="landing-footer">
+        <span>VoidScout methods are transparent: browser-only scanning, your key, your export.</span>
+        <a class="footer-gh" href="index.html">Back home</a>
+      </footer>
+    </main>
+
+    <script src="js/cardNav.js" defer></script>
+    <script src="js/flickeringGrid.js" defer></script>
+  </body>
+</html>

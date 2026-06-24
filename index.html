@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VoidScout | Find local businesses that have no website</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="landing-page">
+    <div class="flicker-layer" aria-hidden="true">
+      <canvas data-flickering-grid></canvas>
+    </div>
+
+    <div data-card-nav></div>
+
+    <main class="landing" id="top">
+      <!-- HERO: say plainly what this is and who it's for -->
+      <section class="landing-hero">
+        <p class="landing-eyebrow">Free &amp; open-source lead finder</p>
+        <h1>Find local businesses<br />that have no website.</h1>
+        <p class="landing-sub">
+          VoidScout is a tool for web designers and agencies. It searches Google
+          Maps for businesses near any location and shows you the ones that
+          <strong>don't have a website</strong> — the owners most likely to hire
+          you to build one. Everything runs in your browser; there's no sign-up.
+        </p>
+
+        <div class="landing-cta">
+          <a class="primary-cta" href="app.html">
+            <span aria-hidden="true">⌕</span>
+            Start scanning
+          </a>
+          <a class="ghost-cta" href="#how">See how it works ↓</a>
+        </div>
+
+        <p class="landing-note">
+          You'll need a free Google Maps API key to run a scan.
+          <a href="methods.html">Here's how to get one →</a>
+        </p>
+      </section>
+
+      <!-- HOW IT WORKS: four concrete steps, no jargon -->
+      <section class="landing-section" id="how">
+        <header class="landing-section-head">
+          <h2>How it works</h2>
+          <p>Four steps, about a minute to your first list of leads.</p>
+        </header>
+
+        <ol class="landing-steps">
+          <li>
+            <span class="step-num">1</span>
+            <strong>Add your Google Maps key</strong>
+            <p>
+              Paste a free Google Maps API key. It's saved only in your browser
+              (localStorage) and never sent anywhere else.
+              <a href="methods.html">How to get a key →</a>
+            </p>
+          </li>
+          <li>
+            <span class="step-num">2</span>
+            <strong>Pick a place &amp; a trade</strong>
+            <p>
+              Type any city or area and choose a business type — plumbers,
+              barbers, dentists, 140+ options.
+            </p>
+          </li>
+          <li>
+            <span class="step-num">3</span>
+            <strong>Scan the map</strong>
+            <p>
+              VoidScout splits the area into a grid and checks each business on
+              Google Maps for a real website of its own.
+            </p>
+          </li>
+          <li>
+            <span class="step-num">4</span>
+            <strong>Export your leads</strong>
+            <p>
+              You get the businesses with no site — name, address, phone, rating
+              — ready to download as a CSV for outreach.
+            </p>
+          </li>
+        </ol>
+      </section>
+
+      <!-- WHY / WHAT COUNTS: address the obvious newcomer questions -->
+      <section class="landing-section">
+        <header class="landing-section-head">
+          <h2>What you should know</h2>
+        </header>
+
+        <div class="landing-faq">
+          <div class="faq-item">
+            <strong>Why businesses without a website?</strong>
+            <p>
+              They're the warmest possible web-design prospects — they have a
+              real business but no online home yet. VoidScout finds them in bulk.
+            </p>
+          </div>
+          <div class="faq-item">
+            <strong>What counts as "no website"?</strong>
+            <p>
+              A Facebook page, Yelp listing, or link-in-bio doesn't count as a
+              real site — those owners still need one, so they're shown as leads.
+            </p>
+          </div>
+          <div class="faq-item">
+            <strong>Is my API key safe?</strong>
+            <p>
+              Yes. It lives only in your browser. There's no server, no account,
+              and no database — VoidScout is just static files you can read.
+            </p>
+          </div>
+          <div class="faq-item">
+            <strong>What does it cost?</strong>
+            <p>
+              VoidScout is free. Google bills you for Maps usage on your own key;
+              the scan-depth control lets you keep that small.
+            </p>
+          </div>
+        </div>
+
+        <div class="landing-final-cta">
+          <a class="primary-cta" href="app.html">
+            <span aria-hidden="true">⌕</span>
+            Start scanning
+          </a>
+        </div>
+      </section>
+
+      <footer class="landing-footer">
+        <span>VoidScout — free &amp; open source. No backend, no tracking.</span>
+        <a class="footer-gh" href="#" aria-label="VoidScout source on GitHub (open source)">
+          <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+            <path
+              fill="currentColor"
+              d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"
+            />
+          </svg>
+          View source
+        </a>
+      </footer>
+    </main>
+
+    <script src="js/cardNav.js" defer></script>
+    <script src="js/flickeringGrid.js" defer></script>
+  </body>
+</html>
