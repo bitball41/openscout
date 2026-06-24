@@ -4,16 +4,38 @@
     const pageSize = options.pageSize || leads.length || 1;
     const visibleLeads = leads.slice((page - 1) * pageSize, page * pageSize);
 
-    container.innerHTML = "";
+    resetResultsContainer(container);
 
     if (!leads.length) {
       container.appendChild(createEmptyState());
       return;
     }
 
+    if (window.OpenScout && window.OpenScout.AnimatedList) {
+      container.setAttribute("aria-label", "Lead results");
+      window.OpenScout.AnimatedList.create(container, {
+        items: visibleLeads,
+        showGradients: true,
+        enableArrowNavigation: true,
+        displayScrollbar: false,
+        initialSelectedIndex: 0,
+        itemClassName: "lead-list-item",
+        renderItem: createLeadCard,
+      });
+      container.dataset.ready = "true";
+      return;
+    }
+
     visibleLeads.forEach((lead, index) => {
       container.appendChild(createLeadCard(lead, index));
     });
+  }
+
+  function resetResultsContainer(container) {
+    container.innerHTML = "";
+    container.classList.remove("animated-list-container");
+    container.removeAttribute("aria-label");
+    delete container.dataset.ready;
   }
 
   function createLeadCard(lead, index) {

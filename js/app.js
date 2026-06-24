@@ -4,9 +4,7 @@
     scanned: 0,
     lastQuery: "Ready",
     locationGuess: null,
-    resultPage: 1,
   };
-  const RESULTS_PAGE_SIZE = 8;
   const THEME_KEY = "openscout.theme";
 
   // Minimum "pessimistic" loader time per scan depth, so a scan always feels
@@ -47,10 +45,6 @@
     leadTally: "[data-lead-tally]",
     locationInput: 'input[name="location"]',
     locationSuggestions: "[data-location-suggestions]",
-    resultsPager: "[data-results-pager]",
-    resultsPageLabel: "[data-results-page-label]",
-    resultsPrev: "[data-results-prev]",
-    resultsNext: "[data-results-next]",
   };
 
   document.addEventListener("DOMContentLoaded", init);
@@ -74,8 +68,6 @@
     document.querySelector(selectors.guessLocation).addEventListener("click", () => guessLocation({ showErrors: true }));
     document.querySelector(selectors.form).addEventListener("submit", handleSearch);
     document.querySelector(selectors.exportCsv).addEventListener("click", handleExport);
-    document.querySelector(selectors.resultsPrev).addEventListener("click", () => changeResultsPage(-1));
-    document.querySelector(selectors.resultsNext).addEventListener("click", () => changeResultsPage(1));
     document.querySelectorAll('input[name="scanDepth"]').forEach((radio) => {
       radio.addEventListener("change", updateDepthHint);
     });
@@ -293,7 +285,6 @@
       state.leads = result.leads;
       state.scanned = result.scanned;
       state.lastQuery = `${businessType} / ${location || state.locationGuess.label}`;
-      state.resultPage = 1;
 
       renderCurrentResults();
       OpenScout.results.renderAttributions(document.querySelector("[data-attributions]"), state.leads);
@@ -325,18 +316,8 @@
     OpenScout.exporter.downloadLeadsCsv(state.leads);
   }
 
-  function changeResultsPage(direction) {
-    const totalPages = Math.max(1, Math.ceil(state.leads.length / RESULTS_PAGE_SIZE));
-    state.resultPage = Math.min(totalPages, Math.max(1, state.resultPage + direction));
-    renderCurrentResults();
-    updateStats();
-  }
-
   function renderCurrentResults() {
-    OpenScout.results.renderResults(document.querySelector(selectors.results), state.leads, {
-      page: state.resultPage,
-      pageSize: RESULTS_PAGE_SIZE,
-    });
+    OpenScout.results.renderResults(document.querySelector(selectors.results), state.leads);
   }
 
   async function guessLocation({ showErrors }) {
@@ -509,7 +490,6 @@
     setTextIfPresent(selectors.lastQuery, state.lastQuery);
     document.querySelector(selectors.exportCsv).disabled = state.leads.length === 0;
     updateLeadTally();
-    updateResultsPager();
   }
 
   function updateLeadTally() {
@@ -522,22 +502,6 @@
     const total = state.leads.length;
     tally.hidden = total === 0;
     tally.textContent = total ? `${total} lead${total === 1 ? "" : "s"} found` : "";
-  }
-
-  function updateResultsPager() {
-    const pager = document.querySelector(selectors.resultsPager);
-    const label = document.querySelector(selectors.resultsPageLabel);
-    const prev = document.querySelector(selectors.resultsPrev);
-    const next = document.querySelector(selectors.resultsNext);
-    const total = state.leads.length;
-    const totalPages = Math.max(1, Math.ceil(total / RESULTS_PAGE_SIZE));
-    const start = total ? (state.resultPage - 1) * RESULTS_PAGE_SIZE + 1 : 0;
-    const end = Math.min(total, state.resultPage * RESULTS_PAGE_SIZE);
-
-    pager.hidden = total <= RESULTS_PAGE_SIZE;
-    label.textContent = total ? `${start}-${end} of ${total}` : "";
-    prev.disabled = state.resultPage <= 1;
-    next.disabled = state.resultPage >= totalPages;
   }
 
   function setTextIfPresent(selector, value) {
