@@ -58,7 +58,7 @@
             <label class="field">
               <span>Location</span>
               <span class="location-control" data-location-picker>
-                <input name="location" type="text" placeholder="Auto-guessing..." />
+                <input name="location" type="text" placeholder="Austin, TX" />
                 <button class="mini-button" type="button" data-guess-location>Guess</button>
                 <div class="location-suggestions" data-location-suggestions hidden></div>
               </span>
@@ -67,7 +67,7 @@
               <span>Business type</span>
               <div class="business-picker" data-business-picker>
                 <select class="native-select" name="businessType" data-business-select aria-hidden="true" tabindex="-1">
-                <option value="">Choose a business type</option>
+                <option value="">Any local business</option>
                 <optgroup label="Popular">
                   <option value="barbers">Barbershops</option>
                   <option value="plumbers">Plumbing companies</option>
@@ -240,7 +240,7 @@
                 </optgroup>
               </select>
                 <button class="business-trigger" type="button" data-business-trigger aria-haspopup="listbox" aria-expanded="false">
-                  <span data-business-label>Choose a business type</span>
+                  <span data-business-label>Any local business</span>
                   <span aria-hidden="true">▾</span>
                 </button>
                 <div class="business-modal" data-business-menu hidden>
@@ -307,7 +307,7 @@
           <article class="empty-state">
             <span>⌁</span>
             <h3>No leads yet</h3>
-            <p>Enter a location and business type above to start scanning.</p>
+            <p>Enter a location above to start scanning.</p>
           </article>
         </div>
         <div class="attribution-list" data-attributions hidden></div>

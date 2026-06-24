@@ -59,6 +59,8 @@
     bindEvents();
     initBusinessPicker();
     initLocationAutocomplete();
+    hydrateSavedLocationGuess();
+    refreshLocationIfAlreadyGranted();
     revealOnScroll();
     updateStats();
   }
@@ -72,7 +74,6 @@
       radio.addEventListener("change", updateDepthHint);
     });
     updateDepthHint();
-    guessLocation({ showErrors: false });
   }
 
   function updateDepthHint() {
@@ -183,7 +184,7 @@
 
     function clearBusiness() {
       select.value = "";
-      label.textContent = "Choose a business type";
+      label.textContent = "Any local business";
       search.value = "";
       renderOptions();
       select.dispatchEvent(new Event("change", { bubbles: true }));
@@ -255,13 +256,14 @@
     const apiKey = OpenScout.storage.setApiKey(data.get("apiKey"));
     const location = String(data.get("location") || "").trim();
     const businessType = String(data.get("businessType") || "").trim();
+    const businessLabel = businessType || "Any local business";
     const depth = String(data.get("scanDepth") || "standard");
     const useLocationGuess = state.locationGuess && location === state.locationGuess.label;
 
     updateKeyStatus(Boolean(apiKey));
 
-    if (!apiKey || (!location && !useLocationGuess) || !businessType) {
-      showMessage("Add an API key and business type. Use the guessed location or type a city manually.", true);
+    if (!apiKey || (!location && !useLocationGuess)) {
+      showMessage("Add an API key and location. Use Guess or type a city manually.", true);
       return;
     }
 
@@ -284,7 +286,7 @@
 
       state.leads = result.leads;
       state.scanned = result.scanned;
-      state.lastQuery = `${businessType} / ${location || state.locationGuess.label}`;
+      state.lastQuery = `${businessLabel} / ${location || state.locationGuess.label}`;
 
       renderCurrentResults();
       OpenScout.results.renderAttributions(document.querySelector("[data-attributions]"), state.leads);
@@ -345,18 +347,51 @@
       }
 
       state.locationGuess = { ...coords, label };
+      OpenScout.storage.setLocationGuess(state.locationGuess);
       locationInput.value = label;
       locationInput.placeholder = "Location";
       showMessage(`Location guessed as ${label}.`);
     } catch (error) {
-      state.locationGuess = null;
       locationInput.placeholder = "Austin, TX";
       if (showErrors) {
+        if (!locationInput.value.trim()) {
+          state.locationGuess = null;
+        }
         showMessage(error.message, true);
       }
     } finally {
       guessButton.disabled = false;
       guessButton.textContent = "Guess";
+    }
+  }
+
+  function hydrateSavedLocationGuess() {
+    const locationInput = document.querySelector(selectors.locationInput);
+    const saved = OpenScout.storage.getLocationGuess();
+
+    if (!locationInput || !saved) {
+      return;
+    }
+
+    state.locationGuess = saved;
+    locationInput.value = saved.label;
+    locationInput.placeholder = "Location";
+  }
+
+  async function refreshLocationIfAlreadyGranted() {
+    if (!navigator.permissions?.query) {
+      return;
+    }
+
+    try {
+      const saved = OpenScout.storage.getLocationGuess();
+      const apiKey = OpenScout.storage.getApiKey() || document.querySelector(selectors.apiKey).value.trim();
+      const permission = await navigator.permissions.query({ name: "geolocation" });
+      if (permission.state === "granted" && (!saved || apiKey)) {
+        guessLocation({ showErrors: false });
+      }
+    } catch {
+      // Some browsers expose geolocation but not Permissions API details.
     }
   }
 

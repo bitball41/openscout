@@ -72,11 +72,18 @@
     deep: { grid: 5, radiusKm: 28 },
   };
   const TILE_CONCURRENCY = 4;
+  const ANY_BUSINESS_QUERY = "local businesses";
+  const CITY_PREDICTION_TYPES = new Set([
+    "locality",
+    "postal_town",
+    "administrative_area_level_2",
+    "administrative_area_level_3",
+  ]);
 
   async function searchLeads({ apiKey, location, businessType, locationGuess, depth = "standard", onProgress } = {}) {
     const maps = await loadGoogleMaps(apiKey);
     const { Place } = await maps.importLibrary("places");
-    const query = String(businessType || "").trim();
+    const query = String(businessType || "").trim() || ANY_BUSINESS_QUERY;
     const { grid, radiusKm } = SCAN_DEPTHS[depth] || SCAN_DEPTHS.standard;
 
     const area = await resolveSearchArea(maps, { location, locationGuess });
@@ -348,12 +355,19 @@
     const { suggestions = [] } = await AutocompleteSuggestion.fetchAutocompleteSuggestions({
       input: query,
       sessionToken: token,
+      includedPrimaryTypes: ["(cities)"],
     });
 
     return suggestions
       .filter((suggestion) => suggestion.placePrediction)
+      .filter(isCitySuggestion)
       .slice(0, 6)
       .map((suggestion) => normalizeLocationSuggestion(suggestion, token));
+  }
+
+  function isCitySuggestion(suggestion) {
+    const types = suggestion.placePrediction?.types || [];
+    return types.some((type) => CITY_PREDICTION_TYPES.has(type));
   }
 
   function normalizePlace(place) {
