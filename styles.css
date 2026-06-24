@@ -1158,7 +1158,7 @@ body.light-mode .result-card {
   width: min(100%, 1040px);
   min-height: 100dvh;
   margin: 0 auto;
-  padding: clamp(6rem, 12vh, 8rem) clamp(1.4rem, 5vw, 3rem) clamp(3rem, 7vh, 4.5rem);
+  padding: clamp(3rem, 7vh, 4.5rem) clamp(1.4rem, 5vw, 3rem);
 }
 
 /* Hero */
