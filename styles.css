@@ -1739,6 +1739,18 @@ body.light-mode .depth-row-head {
   }
 
   .depth-table > div > span:nth-child(2)::before {
+    content: 'Grid: ';
+    font-weight: 600;
+    color: var(--muted);
+  }
+
+  .depth-table > div > span:nth-child(3)::before {
+    content: 'Area cap: ';
+    font-weight: 600;
+    color: var(--muted);
+  }
+
+  .depth-table > div > span:nth-child(2)::before {
     content: "Grid: ";
     font-weight: 600;
     color: var(--muted);
