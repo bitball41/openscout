@@ -189,31 +189,31 @@
       <section class="landing-section methods-section" id="scan-depth">
         <header class="landing-section-head">
           <h2>Scan depth explained</h2>
-          <p>Depth changes the size of the search grid and the number of map searches.</p>
+          <p>Depth sets the starting search grid. Crowded cells that hit Google's result cap are split automatically, so dense areas get extra searches without you asking.</p>
         </header>
 
         <div class="depth-table" role="table" aria-label="Scan depth comparison">
           <div class="depth-row-head" role="row">
             <span role="columnheader">Mode</span>
-            <span role="columnheader">Grid</span>
+            <span role="columnheader">Starting grid</span>
             <span role="columnheader">Area cap</span>
             <span role="columnheader">Best for</span>
           </div>
           <div role="row">
             <strong role="cell">Quick</strong>
-            <span role="cell">2 x 2</span>
+            <span role="cell">2 x 2 (auto-splits)</span>
             <span role="cell">12 km radius</span>
             <span role="cell">Testing a key or checking a small town.</span>
           </div>
           <div role="row">
             <strong role="cell">Standard</strong>
-            <span role="cell">3 x 3</span>
+            <span role="cell">3 x 3 (auto-splits)</span>
             <span role="cell">18 km radius</span>
             <span role="cell">Most normal city searches.</span>
           </div>
           <div role="row">
             <strong role="cell">Deep</strong>
-            <span role="cell">5 x 5</span>
+            <span role="cell">5 x 5 (auto-splits)</span>
             <span role="cell">28 km radius</span>
             <span role="cell">Wider metro areas and harder niches.</span>
           </div>
@@ -223,25 +223,38 @@
           <article class="method-note">
             <strong>Why a grid?</strong>
             <p>
-              Google place searches return a limited set of results for each
-              request. OpenScout slices the area into smaller cells so it can
-              discover more businesses than one broad search would show.
+              Google place searches return at most 20 results per request.
+              OpenScout slices the area into cells, and any cell that comes back
+              full is split into four and searched again — so crowded
+              neighbourhoods stop hiding businesses behind the cap.
             </p>
           </article>
           <article class="method-note">
             <strong>How leads are filtered</strong>
             <p>
-              A business is counted as a lead when Google has no website for it,
-              or when the listed website is only a social profile, directory
-              page, link-in-bio, or auto-built mini site.
+              A business is a lead when Google has no website for it, or the
+              listed link is only a social profile, directory, link-in-bio,
+              booking/ordering page, marketplace, or free site-builder page.
+              Listed real sites are live-checked from your browser, so dead and
+              parked domains surface as leads too.
+            </p>
+          </article>
+          <article class="method-note">
+            <strong>Confidence &amp; accuracy</strong>
+            <p>
+              Each lead gets a confidence score from how it was classified, the
+              live-check result, and how established the business is. The app
+              shows the average as an estimated accuracy, and the Match-precision
+              control filters the least-certain leads — Balanced typically keeps
+              the estimated mistake rate under 10%.
             </p>
           </article>
           <article class="method-note">
             <strong>What the export includes</strong>
             <p>
-              CSV exports include the business name, address, phone, rating,
-              review count, Google Maps URL, and the reason it was marked as a
-              lead.
+              CSV exports include the business name, lead type, confidence, web
+              status, address, phone, rating, review count, existing link,
+              coordinates, and Google Maps URL.
             </p>
           </article>
         </div>

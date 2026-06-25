@@ -7,12 +7,29 @@ The app is intentionally static: no backend, no database, no account system, and
 ## What It Does
 
 - Saves a Google Maps API key locally in the browser.
-- Searches any typed location or guessed current location.
+- Searches any typed location or guessed current location (precise GPS, with a coarse IP fallback when GPS is blocked).
 - Lets users choose a business category from a searchable picker.
-- Scans the area at Quick, Standard, or Deep depth.
-- Filters for businesses with no website or only weak/social/directory web presence.
-- Shows all leads in a continuous animated scroll list.
-- Exports practical outreach fields to CSV.
+- Scans the area at Quick, Standard, or Deep depth, **auto-subdividing dense areas** that hit Google's 20-result cap so far fewer businesses are missed.
+- Classifies each business's web presence with a large, categorised domain index (social, link-in-bio, directory, booking, ordering, marketplace, Google profile, free site-builder, parked/for-sale).
+- **Live-checks listed websites** from the browser to catch dead or parked domains — businesses whose site died still surface as leads.
+- Scores every lead with a **confidence %** and reports an **estimated mistake rate** for the surfaced set.
+- Lets you trade recall for precision with a Match-precision control (Strict / Balanced / All).
+- Shows all leads in a continuous animated scroll list, sorted most-confident first.
+- Exports practical outreach fields (including confidence, web status, and coordinates) to CSV.
+
+## Accuracy
+
+OpenScout treats lead detection as a confidence problem, not a yes/no guess:
+
+- **Classification.** `js/classify.js` holds a categorised index of hundreds of social, directory, booking, ordering, marketplace, and free site-builder domains. A custom domain reads as a real website; a free `*.wixsite.com`/`business.site`/Linktree/Yelp-only presence reads as a lead.
+- **Live verification.** `js/verify.js` probes each listed website directly from the user's browser (a `no-cors` request plus a favicon load). A site is only marked offline when it fails at the network level, so live-but-slow sites are never mislabelled. Dead/parked sites are reclassified as leads.
+- **Confidence scoring.** Each lead gets a 0–99 confidence from its classification certainty, the live-check result, and establishment signals (reviews, phone, operating status). The app surfaces the mean as an "estimated accuracy", and the Match-precision control filters the least-certain guesses. In Balanced mode the estimated mistake rate is typically under 10%; Strict is tighter still.
+
+Run the accuracy unit tests with:
+
+```bash
+node test/classify.test.js
+```
 
 ## Run Locally
 

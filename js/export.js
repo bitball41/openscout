@@ -3,23 +3,31 @@
     const headers = [
       "Business Name",
       "Lead Type",
+      "Confidence %",
+      "Web Status",
       "Address",
       "Phone",
       "Rating",
       "Review Count",
       "Existing Link",
       "Business Status",
+      "Latitude",
+      "Longitude",
       "Google Maps URL",
     ];
     const rows = leads.map((lead) => [
       lead.name,
       lead.leadType || "No website",
+      lead.confidence ?? "",
+      webStatus(lead),
       lead.address,
       lead.phone,
       lead.rating,
       lead.ratingCount,
       lead.weakLink || "",
       lead.businessStatus || "",
+      lead.lat ?? "",
+      lead.lng ?? "",
       lead.googleMapsURL,
     ]);
     const csv = [headers, ...rows].map(toCsvRow).join("\r\n");
@@ -33,6 +41,13 @@
     anchor.click();
     anchor.remove();
     URL.revokeObjectURL(url);
+  }
+
+  function webStatus(lead) {
+    if (lead.verification === "dead") return "Listed site offline";
+    if (lead.verification === "live") return "Listed site live";
+    if (lead.leadCategory === "none" || lead.leadTier === "none") return "No website found";
+    return lead.leadType || "";
   }
 
   function toCsvRow(row) {

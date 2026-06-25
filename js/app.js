@@ -13,9 +13,15 @@
     "Pulling up their listings…",
     "Reading addresses & phone numbers…",
     "Checking each one for a website…",
-    "Filtering out businesses with sites…",
-    "Ranking your best leads…",
+    "Verifying which sites are actually live…",
+    "Scoring confidence & ranking leads…",
   ];
+
+  // Match precision → minimum per-lead confidence. Stricter modes drop the
+  // guesses the classifier is least sure about, lowering the estimated mistake
+  // rate at the cost of a few borderline leads.
+  const PRECISION_CONFIDENCE = { strict: 88, balanced: 80, all: 0 };
+  const DEFAULT_PRECISION = "balanced";
   const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
   const selectors = {
@@ -39,6 +45,8 @@
     leadTally: "[data-lead-tally]",
     locationInput: 'input[name="location"]',
     locationSuggestions: "[data-location-suggestions]",
+    accuracySummary: "[data-accuracy-summary]",
+    verifyToggle: 'input[name="verifySites"]',
   };
 
   document.addEventListener("DOMContentLoaded", init);
@@ -78,9 +86,9 @@
     }
 
     const hints = {
-      quick: "Quick scans a 2×2 grid (~4 API calls) — fastest and cheapest, fewer leads.",
-      standard: "Standard scans a 3×3 grid (~9 API calls). A solid balance of coverage and quota use.",
-      deep: "Deep scans a 5×5 grid (~25 API calls) — the most leads, but uses the most Google quota.",
+      quick: "Quick starts from a 2×2 grid (~4+ calls), auto-splitting only the busiest cells. Fastest and cheapest.",
+      standard: "Standard starts from a 3×3 grid (~9+ calls) and drills into dense areas. A solid balance of coverage and quota.",
+      deep: "Deep starts from a 5×5 grid (~25+ calls), splitting saturated cells for the fullest coverage — uses the most quota.",
     };
 
     hint.textContent = hints[selected.value] || hints.standard;
@@ -244,6 +252,10 @@
     const location = String(data.get("location") || "").trim();
     const businessType = String(data.get("businessType") || "").trim();
     const depth = String(data.get("scanDepth") || "standard");
+    const precision = String(data.get("precision") || DEFAULT_PRECISION);
+    const minConfidence = PRECISION_CONFIDENCE[precision] ?? PRECISION_CONFIDENCE.balanced;
+    const verifyEl = document.querySelector(selectors.verifyToggle);
+    const verify = verifyEl ? verifyEl.checked : true;
     const useLocationGuess = state.locationGuess && location === state.locationGuess.label;
 
     updateKeyStatus(Boolean(apiKey));
@@ -255,6 +267,7 @@
 
     setLoading(true);
     hideMessage();
+    clearAccuracySummary();
     const loader = startScanLoader(depth);
 
     try {
@@ -263,7 +276,10 @@
         location,
         businessType,
         depth,
+        minConfidence,
+        verify,
         locationGuess: useLocationGuess ? state.locationGuess : null,
+        onProgress: (progress) => loader.note(formatProgress(progress)),
       });
 
       // Wait for the real search AND the minimum loader time. If the search
@@ -274,26 +290,91 @@
 
       renderCurrentResults();
       OpenScout.results.renderAttributions(document.querySelector("[data-attributions]"), state.leads);
+      renderAccuracySummary(result);
       updateStats();
-
-      const leadCount = result.leads.length;
-      const withSite = result.withWebsite || 0;
-      const areas = result.tiles ? ` across ${result.tiles} areas` : "";
-      const tail = withSite ? ` (${withSite} already had a real website)` : "";
-      const failedTiles = result.failedTiles || 0;
-      const failedNote = failedTiles
-        ? ` (${failedTiles} of ${result.tiles} areas failed — results may be incomplete; check your API quota.)`
-        : "";
-      showMessage(
-        leadCount
-          ? `Found ${leadCount} lead${leadCount === 1 ? "" : "s"}${areas} from ${result.scanned} businesses scanned${tail}.${failedNote}`
-          : `Scanned ${result.scanned} businesses${areas} — they all already have websites. Try another area, business type, or a deeper scan.${failedNote}`
-      );
+      showMessage(buildResultMessage(result));
     } catch (error) {
       showMessage(error.message || "The scan failed. Check the API key and Places API access.", true);
     } finally {
       loader.stop();
       setLoading(false);
+    }
+  }
+
+  function buildResultMessage(result) {
+    const leadCount = result.leads.length;
+    const areas = result.tiles ? ` across ${result.tiles} areas` : "";
+    const failedTiles = result.failedTiles || 0;
+    const failedNote = failedTiles
+      ? ` (${failedTiles} of ${result.tiles} areas failed — results may be incomplete; check your API quota.)`
+      : "";
+
+    if (!leadCount) {
+      const hiddenOnly = result.hiddenLowConfidence
+        ? ` ${result.hiddenLowConfidence} low-confidence match${result.hiddenLowConfidence === 1 ? " was" : "es were"} filtered out — switch precision to "All" to see them.`
+        : "";
+      return `Scanned ${result.scanned} businesses${areas} — none cleared the bar.${hiddenOnly} Try another area, business type, or a deeper scan.${failedNote}`;
+    }
+
+    const withSite = result.withWebsite || 0;
+    const tail = withSite ? ` (${withSite} already had a real website)` : "";
+    const verified = result.verified ? ` Live-checked ${result.verified} site${result.verified === 1 ? "" : "s"}.` : "";
+    const hidden = result.hiddenLowConfidence
+      ? ` ${result.hiddenLowConfidence} lower-confidence lead${result.hiddenLowConfidence === 1 ? "" : "s"} hidden.`
+      : "";
+    return `Found ${leadCount} lead${leadCount === 1 ? "" : "s"}${areas} from ${result.scanned} businesses scanned${tail}.${verified}${hidden}${failedNote}`;
+  }
+
+  function formatProgress(progress) {
+    if (!progress) return "";
+    if (progress.phase === "verify") {
+      return `Verifying live websites… ${progress.completed}/${progress.total}`;
+    }
+    const leads = Number.isFinite(progress.leads) ? ` · ${progress.leads} candidates` : "";
+    return `Scanning area ${progress.completed}/${progress.total}${leads}`;
+  }
+
+  function renderAccuracySummary(result) {
+    const box = document.querySelector(selectors.accuracySummary);
+    if (!box) return;
+
+    if (!result.leads.length || !result.estimatedAccuracy) {
+      clearAccuracySummary();
+      return;
+    }
+
+    const accuracy = result.estimatedAccuracy;
+    const mistakes = result.estimatedMistakeRate;
+    box.hidden = false;
+    box.innerHTML = "";
+
+    const label = document.createElement("span");
+    label.className = "accuracy-label";
+    label.textContent = "Estimated accuracy";
+
+    const value = document.createElement("strong");
+    value.className = `accuracy-value ${accuracy >= 90 ? "is-strong" : accuracy >= 78 ? "is-good" : "is-fair"}`;
+    value.textContent = `${accuracy}%`;
+
+    const meter = document.createElement("span");
+    meter.className = "accuracy-meter";
+    const fill = document.createElement("span");
+    fill.className = "accuracy-meter-fill";
+    fill.style.width = `${accuracy}%`;
+    meter.appendChild(fill);
+
+    const note = document.createElement("span");
+    note.className = "accuracy-note";
+    note.textContent = `~${mistakes}% may be off${result.verified ? ` · ${result.verified} live-checked` : ""}`;
+
+    box.append(label, value, meter, note);
+  }
+
+  function clearAccuracySummary() {
+    const box = document.querySelector(selectors.accuracySummary);
+    if (box) {
+      box.hidden = true;
+      box.innerHTML = "";
     }
   }
 
@@ -323,22 +404,30 @@
     guessButton.textContent = "...";
 
     try {
-      const coords = await OpenScout.location.getBrowserLocation();
-      let label = OpenScout.location.formatCoordinates(coords);
+      const { coords, approximate } = await resolveCurrentCoords();
+      let label = approximate && coords.label ? coords.label : OpenScout.location.formatCoordinates(coords);
 
       if (apiKey) {
         try {
           label = await OpenScout.googlePlaces.reverseGeocodeLocation(apiKey, coords) || label;
+          if (approximate) {
+            label = `${label} (approx.)`;
+          }
         } catch {
-          label = OpenScout.location.formatCoordinates(coords);
+          label = approximate && coords.label ? coords.label : OpenScout.location.formatCoordinates(coords);
         }
       }
 
-      state.locationGuess = { ...coords, label };
+      state.locationGuess = { lat: coords.lat, lng: coords.lng, accuracy: coords.accuracy, label };
       OpenScout.storage.setLocationGuess(state.locationGuess);
       locationInput.value = label;
       locationInput.placeholder = "Location";
-      showMessage(`Location guessed as ${label}.`);
+      const precision = Number.isFinite(coords.accuracy)
+        ? approximate
+          ? " (approximate, from network)"
+          : ` (±${Math.round(coords.accuracy)}m)`
+        : "";
+      showMessage(`Location guessed as ${label}${precision}.`);
     } catch (error) {
       locationInput.placeholder = "Austin, TX";
       if (showErrors) {
@@ -350,6 +439,25 @@
     } finally {
       guessButton.disabled = false;
       guessButton.textContent = "Guess";
+    }
+  }
+
+  // Try precise GPS first; fall back to coarse IP geolocation if GPS is denied
+  // or unavailable so "Guess" still gives a usable starting point.
+  async function resolveCurrentCoords() {
+    try {
+      const coords = await OpenScout.location.getBrowserLocation();
+      return { coords, approximate: false };
+    } catch (gpsError) {
+      if (typeof OpenScout.location.getApproximateLocationByIp === "function") {
+        try {
+          const coords = await OpenScout.location.getApproximateLocationByIp();
+          return { coords, approximate: true };
+        } catch {
+          throw gpsError;
+        }
+      }
+      throw gpsError;
     }
   }
 
@@ -580,12 +688,15 @@
       return li;
     });
 
+    let liveNote = "";
+
     function paint(active) {
       steps.forEach((li, index) => {
         li.classList.toggle("is-done", index < active);
         li.classList.toggle("is-active", index === active);
       });
-      stageEl.textContent = SCAN_STAGES[Math.min(active, SCAN_STAGES.length - 1)];
+      // Real progress notes win over the ambient stage label when present.
+      stageEl.textContent = liveNote || SCAN_STAGES[Math.min(active, SCAN_STAGES.length - 1)];
     }
 
     loader.hidden = false;
@@ -611,6 +722,12 @@
 
     return {
       duration,
+      note(text) {
+        liveNote = text || "";
+        if (liveNote) {
+          stageEl.textContent = liveNote;
+        }
+      },
       stop() {
         clearInterval(interval);
         loader.hidden = true;

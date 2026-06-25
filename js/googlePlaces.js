@@ -53,6 +53,7 @@
     "id",
     "displayName",
     "formattedAddress",
+    "location",
     "nationalPhoneNumber",
     "internationalPhoneNumber",
     "rating",
@@ -60,18 +61,22 @@
     "websiteURI",
     "googleMapsURI",
     "businessStatus",
+    "primaryType",
+    "types",
   ];
 
   // Google caps Text Search at 20 results per request (and the JS SDK does not
   // expose a page token), so the only way past 20 is to slice the search area
-  // into a grid and run one search per cell. `grid` is the N in an N x N grid
-  // (N^2 requests); `radiusKm` bounds the area when we have no map viewport.
+  // into a grid and run one search per cell. `grid` is the N in an N x N grid;
+  // `maxTiles` is the hard ceiling once adaptive subdivision kicks in, so quota
+  // stays predictable. `verifyCap` bounds how many listed websites we live-check.
   const SCAN_DEPTHS = {
-    quick: { grid: 2, radiusKm: 12 },
-    standard: { grid: 3, radiusKm: 18 },
-    deep: { grid: 5, radiusKm: 28 },
+    quick: { grid: 2, radiusKm: 12, maxTiles: 16, verifyCap: 30, maxSubdiv: 1 },
+    standard: { grid: 3, radiusKm: 18, maxTiles: 49, verifyCap: 70, maxSubdiv: 2 },
+    deep: { grid: 5, radiusKm: 28, maxTiles: 121, verifyCap: 150, maxSubdiv: 2 },
   };
-  const TILE_CONCURRENCY = 4;
+  const TILE_CONCURRENCY = 5;
+  const SATURATION = 20; // a tile returning the cap is "full" — subdivide it.
   const ANY_BUSINESS_QUERY = "local businesses";
   const CITY_PREDICTION_TYPES = new Set([
     "locality",
@@ -79,23 +84,59 @@
     "administrative_area_level_2",
     "administrative_area_level_3",
   ]);
+  const PREFERRED_GEOCODE_TYPES = new Set([
+    "locality",
+    "postal_town",
+    "postal_code",
+    "neighborhood",
+    "sublocality",
+    "administrative_area_level_1",
+    "administrative_area_level_2",
+    "administrative_area_level_3",
+  ]);
 
-  async function searchLeads({ apiKey, location, businessType, locationGuess, depth = "standard", onProgress } = {}) {
+  function classifier() {
+    return (window.OpenScout && window.OpenScout.classify) || null;
+  }
+
+  async function searchLeads({
+    apiKey,
+    location,
+    businessType,
+    locationGuess,
+    depth = "standard",
+    minConfidence = 0,
+    verify = true,
+    onProgress,
+  } = {}) {
     const maps = await loadGoogleMaps(apiKey);
     const { Place } = await maps.importLibrary("places");
+    const classify = classifier();
     const query = String(businessType || "").trim() || ANY_BUSINESS_QUERY;
-    const { grid, radiusKm } = SCAN_DEPTHS[depth] || SCAN_DEPTHS.standard;
+    const settings = SCAN_DEPTHS[depth] || SCAN_DEPTHS.standard;
 
     const area = await resolveSearchArea(maps, { location, locationGuess });
-    const bounds = clampBounds(area.center, area.viewport, radiusKm);
-    const tiles = buildGrid(bounds, grid);
+    const bounds = clampBounds(area.center, area.viewport, settings.radiusKm);
 
     const collected = new Map();
+    const queue = buildGrid(bounds, settings.grid).map((tile) => ({ ...tile, depth: 0 }));
     let completed = 0;
     let errorCount = 0;
     let lastError = null;
 
-    await runPool(tiles, TILE_CONCURRENCY, async (tile) => {
+    const report = (phase) => {
+      if (typeof onProgress === "function") {
+        onProgress({
+          phase,
+          completed,
+          total: queue.length,
+          scanned: collected.size,
+          leads: countLeadCandidates(collected, classify),
+        });
+      }
+    };
+
+    await runDynamicPool(queue, TILE_CONCURRENCY, async (tile) => {
       try {
         const places = await searchTile(Place, query, tile);
         places.forEach((place) => {
@@ -104,52 +145,159 @@
             collected.set(normalized.id, normalized);
           }
         });
+
+        // A saturated tile is hiding businesses behind the 20-result cap — split
+        // it into a 2x2 and search the quarters, until we hit the tile budget.
+        if (
+          places.length >= SATURATION &&
+          tile.depth < settings.maxSubdiv &&
+          queue.length + 4 <= settings.maxTiles
+        ) {
+          subdivide(tile).forEach((child) => queue.push(child));
+        }
       } catch (error) {
         errorCount += 1;
         lastError = error;
       } finally {
         completed += 1;
-        if (typeof onProgress === "function") {
-          onProgress({
-            completed,
-            total: tiles.length,
-            scanned: collected.size,
-            leads: countOpenLeads(collected),
-          });
-        }
+        report("scan");
       }
     });
 
     // Only treat the scan as failed if every tile failed; partial failures still
     // return whatever leads we managed to gather.
-    if (!collected.size && errorCount === tiles.length && lastError) {
+    if (!collected.size && errorCount >= queue.length && lastError) {
       throw lastError;
     }
 
-    const normalized = Array.from(collected.values());
-    const open = normalized.filter((place) => place.businessStatus !== "CLOSED_PERMANENTLY");
-    const leads = sortLeads(open.filter((place) => place.isLead));
+    const open = Array.from(collected.values()).filter(
+      (place) => place.businessStatus !== "CLOSED_PERMANENTLY"
+    );
+
+    if (!classify) {
+      // Defensive fallback if classify.js failed to load: treat empty website
+      // as a lead so the app still works, just without confidence scoring.
+      const leads = open.filter((place) => !place.website);
+      return basicResult(query, queue.length, errorCount, open, leads);
+    }
+
+    open.forEach((place) => {
+      place.classification = classify.classifyWebsite(place.website);
+    });
+
+    // --- Live-verification phase: rescue dead/parked listed sites as leads. ----
+    let verifyMap = new Map();
+    const verifyApi = window.OpenScout && window.OpenScout.verify;
+    if (verify && verifyApi) {
+      const toVerify = open
+        .filter((place) => place.classification.category === "real" && place.website)
+        .sort((a, b) => (Number(b.ratingCount) || 0) - (Number(a.ratingCount) || 0))
+        .slice(0, settings.verifyCap)
+        .map((place) => ({ id: place.id, url: place.website }));
+
+      const verifyTotal = toVerify.length;
+      if (verifyTotal) {
+        verifyMap = await verifyApi.verifyMany(toVerify, {
+          concurrency: 6,
+          timeout: 6000,
+          onProgress: ({ completed: done }) => {
+            if (typeof onProgress === "function") {
+              onProgress({ phase: "verify", completed: done, total: verifyTotal });
+            }
+          },
+        });
+      }
+    }
+
+    const scored = open.map((place) => {
+      const verification = verifyMap.get(place.id) || null;
+      const score = classify.scoreLead(place, place.classification, verification);
+      return {
+        ...place,
+        isLead: score.isLead,
+        leadTier: score.tier,
+        leadCategory: score.category,
+        leadType: score.type,
+        confidence: score.confidence,
+        reasons: score.reasons,
+        verification: verification ? verification.state : "",
+        weakLink: score.tier === "weak" ? place.classification.weakLink : "",
+      };
+    });
+
+    const allLeads = scored.filter((place) => place.isLead);
+    const threshold = Number(minConfidence) || 0;
+    const surfaced = sortLeads(allLeads.filter((lead) => lead.confidence >= threshold));
+    const withWebsite = scored.length - allLeads.length;
 
     return {
       query,
-      tiles: tiles.length,
+      tiles: queue.length,
       failedTiles: errorCount,
-      scanned: normalized.length,
-      withWebsite: open.length - leads.length,
-      leads,
+      scanned: scored.length,
+      withWebsite,
+      verified: verifyMap.size,
+      leads: surfaced,
+      hiddenLowConfidence: allLeads.length - surfaced.length,
+      totalLeads: allLeads.length,
+      ...accuracyStats(surfaced),
     };
+  }
+
+  function basicResult(query, tiles, failedTiles, open, leads) {
+    return {
+      query,
+      tiles,
+      failedTiles,
+      scanned: open.length,
+      withWebsite: open.length - leads.length,
+      verified: 0,
+      leads: leads.map((lead) => ({ ...lead, isLead: true, leadTier: "none", leadType: "No website", confidence: 70 })),
+      hiddenLowConfidence: 0,
+      totalLeads: leads.length,
+      estimatedAccuracy: 70,
+      estimatedMistakeRate: 30,
+    };
+  }
+
+  // Mean per-lead confidence drives the honest "estimated mistake rate" the app
+  // shows. Fewer, higher-confidence leads => lower estimated mistakes.
+  function accuracyStats(leads) {
+    if (!leads.length) {
+      return { estimatedAccuracy: 0, estimatedMistakeRate: 0 };
+    }
+    const total = leads.reduce((sum, lead) => sum + (Number(lead.confidence) || 0), 0);
+    const accuracy = Math.round(total / leads.length);
+    return { estimatedAccuracy: accuracy, estimatedMistakeRate: Math.max(0, 100 - accuracy) };
   }
 
   async function searchTile(Place, textQuery, tileBounds) {
     const { places = [] } = await Place.searchByText({
       textQuery,
       fields: PLACE_FIELDS,
-      maxResultCount: 20,
-      locationRestriction: tileBounds,
+      maxResultCount: SATURATION,
+      locationRestriction: {
+        north: tileBounds.north,
+        south: tileBounds.south,
+        east: tileBounds.east,
+        west: tileBounds.west,
+      },
       pureServiceAreaBusinessesIncluded: true,
     });
 
     return places;
+  }
+
+  function subdivide(tile) {
+    const midLat = (tile.north + tile.south) / 2;
+    const midLng = (tile.east + tile.west) / 2;
+    const depth = tile.depth + 1;
+    return [
+      { south: tile.south, north: midLat, west: tile.west, east: midLng, depth },
+      { south: tile.south, north: midLat, west: midLng, east: tile.east, depth },
+      { south: midLat, north: tile.north, west: tile.west, east: midLng, depth },
+      { south: midLat, north: tile.north, west: midLng, east: tile.east, depth },
+    ];
   }
 
   // Resolve the search to a center point (+ optional map viewport). A browser
@@ -178,7 +326,7 @@
       throw new Error(`Could not find "${query}". Try a city and state, e.g. "Austin, TX".`);
     }
 
-    const best = results[0];
+    const best = pickBestGeocode(results);
     const location = best.geometry.location;
     const center = { lat: location.lat(), lng: location.lng() };
     let viewport = null;
@@ -190,6 +338,18 @@
     }
 
     return { center, viewport };
+  }
+
+  // Geocoder returns candidates best-first, but for ambiguous place names a
+  // result with a real place type + viewport is a safer scan center than a raw
+  // first hit (which can be a plus-code or a far-off match).
+  function pickBestGeocode(results) {
+    const typed = results.find(
+      (result) =>
+        result.geometry?.viewport &&
+        (result.types || []).some((type) => PREFERRED_GEOCODE_TYPES.has(type))
+    );
+    return typed || results.find((result) => result.geometry?.viewport) || results[0];
   }
 
   // A square box of half-size radiusKm around a center point.
@@ -241,13 +401,15 @@
     return tiles;
   }
 
-  // Run async workers over items with a bounded concurrency pool.
-  async function runPool(items, concurrency, worker) {
+  // Run async workers over a queue with bounded concurrency. The queue may grow
+  // while running (adaptive tiling pushes sub-tiles), and live runners pick the
+  // new work up.
+  async function runDynamicPool(queue, concurrency, worker) {
     let index = 0;
-    const size = Math.min(concurrency, items.length);
+    const size = Math.max(1, Math.min(concurrency, queue.length));
     const runners = Array.from({ length: size }, async () => {
-      while (index < items.length) {
-        const current = items[index];
+      while (index < queue.length) {
+        const current = queue[index];
         index += 1;
         await worker(current);
       }
@@ -256,66 +418,28 @@
     await Promise.all(runners);
   }
 
-  function countOpenLeads(collected) {
+  function countLeadCandidates(collected, classify) {
     let total = 0;
     collected.forEach((place) => {
-      if (place.isLead && place.businessStatus !== "CLOSED_PERMANENTLY") {
-        total += 1;
-      }
+      if (place.businessStatus === "CLOSED_PERMANENTLY") return;
+      const isLead = classify
+        ? classify.classifyWebsite(place.website).isLead
+        : !place.website;
+      if (isLead) total += 1;
     });
     return total;
   }
 
-  // A business is a lead when it has no *real* website of its own. A page that
-  // only lives on Facebook/Instagram/Yelp/Linktree, or a Google/GoDaddy
-  // auto-built microsite, still counts as a lead — those owners are exactly the
-  // ones who need a proper site built.
-  function classifyWebsite(rawUrl) {
-    const url = String(rawUrl || "").trim();
-
-    if (!url) {
-      return { isLead: true, tier: "none", type: "No website", weakLink: "" };
-    }
-
-    let host;
-    try {
-      host = new URL(url).hostname.replace(/^www\./, "").toLowerCase();
-    } catch {
-      host = url.toLowerCase();
-    }
-
-    const weakHosts = [
-      { type: "Facebook only", domains: ["facebook.com", "fb.com", "fb.me"] },
-      { type: "Instagram only", domains: ["instagram.com"] },
-      { type: "Link page only", domains: ["linktr.ee", "linktree.com", "linkin.bio", "beacons.ai"] },
-      { type: "Yelp listing only", domains: ["yelp.com", "yelp.to"] },
-      { type: "TripAdvisor only", domains: ["tripadvisor.com"] },
-      { type: "TikTok only", domains: ["tiktok.com"] },
-      { type: "Social only", domains: ["twitter.com", "x.com"] },
-    ];
-
-    const matchesHost = (domain) => host === domain || host.endsWith(`.${domain}`);
-
-    for (const entry of weakHosts) {
-      if (entry.domains.some(matchesHost)) {
-        return { isLead: true, tier: "weak", type: entry.type, weakLink: url };
-      }
-    }
-
-    const autoSiteHosts = ["business.site", "sites.google.com", "godaddysites.com", "square.site", "wixsite.com"];
-    if (autoSiteHosts.some(matchesHost)) {
-      return { isLead: true, tier: "weak", type: "Auto-built page", weakLink: url };
-    }
-
-    return { isLead: false, tier: "real", type: "Has website", weakLink: url };
-  }
-
-  // Best leads first: businesses with no site at all before social-only ones,
-  // then most-reviewed (an established shop missing a website is the prize).
+  // Best leads first: businesses we're most confident about, then no-site before
+  // weak-site, then most-reviewed (an established shop missing a website is the
+  // prize).
   function sortLeads(leads) {
     const tierRank = { none: 0, weak: 1 };
 
     return leads.sort((a, b) => {
+      const confidence = (Number(b.confidence) || 0) - (Number(a.confidence) || 0);
+      if (confidence) return confidence;
+
       const tier = (tierRank[a.leadTier] ?? 9) - (tierRank[b.leadTier] ?? 9);
       if (tier) return tier;
 
@@ -374,7 +498,7 @@
   function normalizePlace(place) {
     const name = place.displayName || place.name || "Unnamed business";
     const phone = place.nationalPhoneNumber || place.internationalPhoneNumber || "";
-    const classification = classifyWebsite(place.websiteURI);
+    const coords = readLatLng(place.location);
 
     return {
       id: place.id || crypto.randomUUID(),
@@ -386,12 +510,25 @@
       website: place.websiteURI || "",
       googleMapsURL: place.googleMapsURI || "",
       businessStatus: place.businessStatus || "",
-      isLead: classification.isLead,
-      leadTier: classification.tier,
-      leadType: classification.type,
-      weakLink: classification.tier === "weak" ? classification.weakLink : "",
+      primaryType: place.primaryType || "",
+      lat: coords.lat,
+      lng: coords.lng,
       attributions: normalizeAttributions(place.attributions),
     };
+  }
+
+  function readLatLng(location) {
+    if (!location) return { lat: "", lng: "" };
+    try {
+      const lat = typeof location.lat === "function" ? location.lat() : location.lat;
+      const lng = typeof location.lng === "function" ? location.lng() : location.lng;
+      return {
+        lat: Number.isFinite(lat) ? lat : "",
+        lng: Number.isFinite(lng) ? lng : "",
+      };
+    } catch {
+      return { lat: "", lng: "" };
+    }
   }
 
   function normalizeAttributions(attributions) {
