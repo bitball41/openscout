@@ -1,11 +1,8 @@
 (function () {
   const state = {
     leads: [],
-    scanned: 0,
-    lastQuery: "Ready",
     locationGuess: null,
   };
-  const THEME_KEY = "openscout.theme";
 
   // Minimum "pessimistic" loader time per scan depth, so a scan always feels
   // like real work even though the API usually returns in a second or two.
@@ -31,9 +28,6 @@
     results: "[data-results]",
     exportCsv: "[data-export-csv]",
     message: "[data-message]",
-    totalScanned: "[data-total-scanned]",
-    leadCount: "[data-lead-count]",
-    lastQuery: "[data-last-query]",
     businessPicker: "[data-business-picker]",
     businessSelect: "[data-business-select]",
     businessTrigger: "[data-business-trigger]",
@@ -54,7 +48,6 @@
     const apiInput = document.querySelector(selectors.apiKey);
 
     apiInput.value = savedKey;
-    applyTheme(localStorage.getItem(THEME_KEY) || "dark");
     updateKeyStatus(Boolean(savedKey));
     bindEvents();
     initBusinessPicker();
@@ -91,12 +84,6 @@
     };
 
     hint.textContent = hints[selected.value] || hints.standard;
-  }
-
-  function applyTheme(theme) {
-    const isLight = theme === "light";
-
-    document.body.classList.toggle("light-mode", isLight);
   }
 
   function initBusinessPicker() {
@@ -256,7 +243,6 @@
     const apiKey = OpenScout.storage.setApiKey(data.get("apiKey"));
     const location = String(data.get("location") || "").trim();
     const businessType = String(data.get("businessType") || "").trim();
-    const businessLabel = businessType || "Any local business";
     const depth = String(data.get("scanDepth") || "standard");
     const useLocationGuess = state.locationGuess && location === state.locationGuess.label;
 
@@ -285,8 +271,6 @@
       const [result] = await Promise.all([searchPromise, sleep(loader.duration)]);
 
       state.leads = result.leads;
-      state.scanned = result.scanned;
-      state.lastQuery = `${businessLabel} / ${location || state.locationGuess.label}`;
 
       renderCurrentResults();
       OpenScout.results.renderAttributions(document.querySelector("[data-attributions]"), state.leads);
@@ -296,10 +280,14 @@
       const withSite = result.withWebsite || 0;
       const areas = result.tiles ? ` across ${result.tiles} areas` : "";
       const tail = withSite ? ` (${withSite} already had a real website)` : "";
+      const failedTiles = result.failedTiles || 0;
+      const failedNote = failedTiles
+        ? ` (${failedTiles} of ${result.tiles} areas failed — results may be incomplete; check your API quota.)`
+        : "";
       showMessage(
         leadCount
-          ? `Found ${leadCount} lead${leadCount === 1 ? "" : "s"}${areas} from ${result.scanned} businesses scanned${tail}.`
-          : `Scanned ${result.scanned} businesses${areas} — they all already have websites. Try another area, business type, or a deeper scan.`
+          ? `Found ${leadCount} lead${leadCount === 1 ? "" : "s"}${areas} from ${result.scanned} businesses scanned${tail}.${failedNote}`
+          : `Scanned ${result.scanned} businesses${areas} — they all already have websites. Try another area, business type, or a deeper scan.${failedNote}`
       );
     } catch (error) {
       showMessage(error.message || "The scan failed. Check the API key and Places API access.", true);
@@ -520,9 +508,6 @@
   }
 
   function updateStats() {
-    setTextIfPresent(selectors.totalScanned, state.scanned);
-    setTextIfPresent(selectors.leadCount, state.leads.length);
-    setTextIfPresent(selectors.lastQuery, state.lastQuery);
     document.querySelector(selectors.exportCsv).disabled = state.leads.length === 0;
     updateLeadTally();
   }
@@ -537,14 +522,6 @@
     const total = state.leads.length;
     tally.hidden = total === 0;
     tally.textContent = total ? `${total} lead${total === 1 ? "" : "s"} found` : "";
-  }
-
-  function setTextIfPresent(selector, value) {
-    const node = document.querySelector(selector);
-
-    if (node) {
-      node.textContent = value;
-    }
   }
 
   const SCAN_ICON =
