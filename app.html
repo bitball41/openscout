@@ -241,7 +241,9 @@
               </select>
                 <button class="business-trigger" type="button" data-business-trigger aria-haspopup="listbox" aria-expanded="false">
                   <span data-business-label>Any local business</span>
-                  <span aria-hidden="true">▾</span>
+                  <svg class="btn-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
                 </button>
                 <div class="business-modal" data-business-menu hidden>
                   <div class="business-modal-backdrop" data-business-backdrop></div>
@@ -249,7 +251,12 @@
                     <div class="business-modal-head">
                       <div class="business-modal-title">
                         <strong>Choose a business type</strong>
-                        <button class="modal-close" type="button" data-business-close aria-label="Close">✕</button>
+                        <button class="modal-close" type="button" data-business-close aria-label="Close">
+                          <svg class="btn-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <line x1="18" y1="6" x2="6" y2="18" />
+                            <line x1="6" y1="6" x2="18" y2="18" />
+                          </svg>
+                        </button>
                       </div>
                       <div class="business-search-row">
                         <input type="search" data-business-search placeholder="Search 140 business types..." autocomplete="off" />
@@ -280,8 +287,11 @@
               <p class="microcopy" data-depth-hint>Standard scans a 3×3 grid (~9 API calls). More depth finds more leads but uses more of your Google quota.</p>
             </div>
 
-            <button class="scan-button" type="submit">
-              <span aria-hidden="true">⌕</span>
+            <button class="scan-button rainbow-button" type="submit">
+              <svg class="btn-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="11" cy="11" r="7" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
               Scan
             </button>
           </div>
@@ -305,7 +315,12 @@
         <div class="notice" data-message hidden></div>
         <div class="results-grid" data-results>
           <article class="empty-state">
-            <span>⌁</span>
+            <span class="empty-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="7" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+            </span>
             <h3>No leads yet</h3>
             <p>Enter a location above to start scanning.</p>
           </article>
