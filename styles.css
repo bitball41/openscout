@@ -985,6 +985,18 @@ body.light-mode .result-card {
   justify-content: space-between;
   gap: var(--s-2);
   min-width: 0;
+}
+
+.result-name {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 1rem;
+  line-height: 1.18;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .badge {
   flex: 0 0 auto;
   padding: 0.26rem 0.5rem;
@@ -1736,18 +1748,6 @@ body.light-mode .depth-row-head {
 
   .depth-row-head {
     display: none !important;
-  }
-
-  .depth-table > div > span:nth-child(2)::before {
-    content: 'Grid: ';
-    font-weight: 600;
-    color: var(--muted);
-  }
-
-  .depth-table > div > span:nth-child(3)::before {
-    content: 'Area cap: ';
-    font-weight: 600;
-    color: var(--muted);
   }
 
   .depth-table > div > span:nth-child(2)::before {
