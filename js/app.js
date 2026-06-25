@@ -547,11 +547,22 @@
     }
   }
 
+  const SCAN_ICON =
+    '<svg class="btn-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>';
+  const SCAN_SPINNER =
+    '<svg class="btn-icon btn-spinner" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true">' +
+    '<path d="M21 12a9 9 0 1 1-6.219-8.56" /></svg>';
+
   function setLoading(isLoading) {
     const button = document.querySelector(".scan-button");
 
+    if (!button) {
+      return;
+    }
+
     button.disabled = isLoading;
-    button.innerHTML = isLoading ? "<span aria-hidden=\"true\">⌁</span> Scanning" : "<span aria-hidden=\"true\">⌕</span> Scan";
+    button.innerHTML = isLoading ? SCAN_SPINNER + " Scanning" : SCAN_ICON + " Scan";
   }
 
   function showMessage(message, isError = false) {

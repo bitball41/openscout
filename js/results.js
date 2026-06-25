@@ -193,7 +193,12 @@
     const empty = document.createElement("article");
     empty.className = "empty-state";
     empty.innerHTML = `
-      <span>*</span>
+      <span class="empty-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="7" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+      </span>
       <h3>No matching leads</h3>
       <p>Try a broader business type, a nearby city, or another neighborhood.</p>
     `;

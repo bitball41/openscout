@@ -2001,6 +2001,11 @@ body.light-mode .depth-row-head {
   vertical-align: middle;
 }
 
+/* Spinner shown in the Scan button while a scan runs (reuses the `spin` keyframe). */
+.btn-spinner {
+  animation: spin 0.9s linear infinite;
+}
+
 .empty-icon {
   display: grid;
   place-items: center;
@@ -2051,6 +2056,9 @@ body.light-mode .depth-row-head {
   width: 60%;
   height: 40%;
   transform: translateX(-50%);
+  /* Promote to its own composite layer so the blurred, infinitely animated
+     glow is GPU-offloaded and doesn't repaint the surrounding UI. */
+  will-change: transform;
   background-size: 200%;
   animation: rainbow var(--rainbow-speed) infinite linear;
   background-image: linear-gradient(
