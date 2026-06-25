@@ -985,6 +985,8 @@ body.light-mode .result-card {
   justify-content: space-between;
   gap: var(--s-2);
   min-width: 0;
+}
+
 .badge {
   flex: 0 0 auto;
   padding: 0.26rem 0.5rem;
