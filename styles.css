@@ -1000,9 +1000,9 @@ body.light-mode .result-card {
 .badge {
   flex: 0 0 auto;
   padding: 0.26rem 0.5rem;
-  border: 1px solid rgba(115, 255, 165, 0.4);
+  border: 1px solid color-mix(in srgb, var(--green) 40%, transparent);
   border-radius: var(--r-pill);
-  background: rgba(115, 255, 165, 0.1);
+  background: color-mix(in srgb, var(--green) 10%, transparent);
   color: var(--accent);
   font-size: 0.64rem;
   font-weight: 900;
@@ -1012,8 +1012,8 @@ body.light-mode .result-card {
 }
 
 .badge.is-weak {
-  border-color: rgba(232, 244, 201, 0.35);
-  background: rgba(232, 244, 201, 0.09);
+  border-color: color-mix(in srgb, var(--amber) 35%, transparent);
+  background: color-mix(in srgb, var(--amber) 9%, transparent);
   color: #edf5d1;
 }
 
@@ -1749,6 +1749,18 @@ body.light-mode .depth-row-head {
   .depth-row-head {
     display: none !important;
   }
+
+  .depth-table > div > span:nth-child(2)::before {
+    content: "Grid: ";
+    font-weight: 600;
+    color: var(--muted);
+  }
+
+  .depth-table > div > span:nth-child(3)::before {
+    content: "Area cap: ";
+    font-weight: 600;
+    color: var(--muted);
+  }
 }
 
 /* --------------------------------------------------------------- Card nav ---
@@ -1792,6 +1804,7 @@ body.light-mode .depth-row-head {
 
 .hamburger-menu {
   height: 100%;
+  padding: 0 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1940,6 +1953,12 @@ body.light-mode .depth-row-head {
 
 .nav-card-link:hover {
   color: var(--text);
+}
+
+.nav-card-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 2px;
 }
 
 .nav-card-link-icon {
