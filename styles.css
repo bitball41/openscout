@@ -985,18 +985,6 @@ body.light-mode .result-card {
   justify-content: space-between;
   gap: var(--s-2);
   min-width: 0;
-}
-
-.result-name {
-  min-width: 0;
-  overflow: hidden;
-  font-size: 1rem;
-  line-height: 1.18;
-  font-weight: 800;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .badge {
   flex: 0 0 auto;
   padding: 0.26rem 0.5rem;
