@@ -169,10 +169,11 @@ body.light-mode .flicker-layer {
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: minmax(360px, 0.44fr) minmax(0, 0.56fr);
+  grid-template-columns: minmax(360px, 0.46fr) minmax(0, 0.54fr);
+  align-items: center;
   gap: clamp(1.1rem, 2.6vw, 2.4rem);
   width: min(100%, 1280px);
-  height: 100dvh;
+  min-height: 100dvh;
   margin: 0 auto;
   padding: clamp(1.2rem, 2.6vw, 2.2rem);
   /* Reserve room for the fixed card nav so it never overlaps the panels. */
@@ -702,6 +703,9 @@ body.light-mode .business-modal-backdrop {
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr) auto auto;
   gap: var(--s-3);
+  /* Bound the panel so it stays balanced with the form card instead of
+     stretching to the full viewport. The grid still scrolls internally. */
+  height: min(760px, calc(100dvh - 8rem));
   padding: clamp(1rem, 2vw, 1.4rem);
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
@@ -1213,6 +1217,7 @@ body.light-mode .result-card {
   }
 
   .results-section {
+    height: auto;
     min-height: 70vh;
   }
 }
