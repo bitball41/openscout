@@ -74,18 +74,38 @@ Result-count strategy:
   query. To find more leads it tiles the search area into an N x N grid (chosen
   by the "Scan depth" control) and runs one `searchByText` per tile with a
   `locationRestriction` rectangle, then dedupes by place id.
-- Tiling multiplies API calls per scan (roughly grid^2). The depth control keeps
-  this in the user's hands; default to a modest grid and stay honest about cost.
+- Tiling is adaptive: a tile that returns the full 20 results is "saturated"
+  (hiding businesses) and is split into a 2x2 of sub-tiles that are searched in
+  turn, up to a per-depth tile budget. This sharply reduces missed businesses in
+  dense areas while keeping quota predictable.
+- Tiling multiplies API calls per scan (roughly grid^2, more where it
+  subdivides). The depth control keeps this in the user's hands; default to a
+  modest grid and stay honest about cost.
 
-Filtering rule:
+Filtering rule (see `js/classify.js` and `js/verify.js`):
 
-- A business is a lead if Google Places returns no website of its own. A page
-  that only lives on a social network (Facebook/Instagram/etc.), a directory
-  (Yelp/TripAdvisor), a link-in-bio page, or a Google/Wix/Square/GoDaddy
-  auto-built microsite still counts as a lead — those owners still need a real
-  site. Permanently closed businesses are excluded.
+- A business is a lead if it has no *real* website of its own. A page that only
+  lives on a social network, a directory, a link-in-bio page, a booking/ordering
+  platform, a marketplace storefront, a Google profile, or a free site-builder
+  subdomain (`*.wixsite.com`, `business.site`, etc.) still counts as a lead. A
+  custom domain reads as a real website. Permanently closed businesses are
+  excluded.
+- Listed "real" websites are live-checked from the browser; ones that fail at
+  the network level (dead/parked domains) are reclassified as leads.
+- Every lead carries a confidence score (classification certainty + live-check
+  result + establishment signals). The app reports the mean as an estimated
+  accuracy, and a Match-precision control filters the least-confident leads so
+  the surfaced set stays high-precision.
 
 The app should be honest about Google API limits, billing, key restrictions, and permission failures. If autocomplete or geolocation is unavailable, manual typing should still work.
+
+Allowed external calls (still no backend, no proxy):
+
+- Live website verification contacts each target site directly from the user's
+  browser — exactly as if the user clicked the link. No third-party relay.
+- Current-location guessing uses precise GPS first; if that is blocked it may
+  fall back to a free, no-key IP-geolocation service for a coarse city estimate.
+  This is the only non-Google request and sends nothing but the request itself.
 
 ## Data Shown For Each Lead
 
@@ -97,9 +117,10 @@ At minimum:
 - Rating, if available
 - Review count, if available
 - Google Maps link, if available
-- Clear "No website" badge
+- Clear lead-type badge (No website / Social only / Directory only / Website offline / …)
+- Confidence chip with the reasons behind the score (hover/title)
 
-CSV export should include the same practical outreach fields.
+CSV export should include the same practical outreach fields, plus confidence, web status, and coordinates.
 
 ## Maintenance Guidance
 

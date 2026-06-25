@@ -51,11 +51,19 @@
     name.className = "result-name";
     name.textContent = lead.name;
 
+    const badges = document.createElement("span");
+    badges.className = "result-badges";
+
     const badge = document.createElement("span");
     badge.className = lead.leadTier === "weak" ? "badge is-weak" : "badge";
     badge.textContent = lead.leadType || "No website";
+    badges.appendChild(badge);
 
-    summary.append(name, badge);
+    if (Number.isFinite(Number(lead.confidence)) && lead.confidence) {
+      badges.appendChild(confidenceChip(lead));
+    }
+
+    summary.append(name, badges);
     body.appendChild(summary);
 
     const insight = document.createElement("div");
@@ -149,6 +157,33 @@
     });
 
     select(0);
+  }
+
+  function confidenceChip(lead) {
+    const pct = Math.round(Number(lead.confidence));
+    const chip = document.createElement("span");
+    chip.className = `confidence-chip ${confidenceClass(pct)}`;
+    chip.textContent = `${pct}%`;
+    const reasons = Array.isArray(lead.reasons) ? lead.reasons : [];
+    const band = bandLabel(pct);
+    chip.title = `${band} confidence (${pct}%)${reasons.length ? `\n• ${reasons.join("\n• ")}` : ""}`;
+    chip.setAttribute("aria-label", `${band} confidence, ${pct} percent`);
+    return chip;
+  }
+
+  function confidenceClass(pct) {
+    if (pct >= 90) return "is-strong";
+    if (pct >= 78) return "is-good";
+    if (pct >= 65) return "is-fair";
+    return "is-weak-conf";
+  }
+
+  function bandLabel(pct) {
+    const classify = window.OpenScout && window.OpenScout.classify;
+    if (classify && typeof classify.confidenceBand === "function") {
+      return classify.confidenceBand(pct);
+    }
+    return pct >= 80 ? "High" : "Moderate";
   }
 
   function metaRow(label, value) {
