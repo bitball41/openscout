@@ -170,9 +170,16 @@
       throw lastError;
     }
 
-    const open = Array.from(collected.values()).filter(
+    const openRaw = Array.from(collected.values()).filter(
       (place) => place.businessStatus !== "CLOSED_PERMANENTLY"
     );
+
+    // Merge duplicate listings (the same business found across overlapping
+    // tiles). Crucially this keeps the strongest web presence found for a
+    // business, so a shop listed twice — once with a site, once without — never
+    // surfaces as a false "no website" lead.
+    const open = classify ? classify.mergeDuplicates(openRaw) : openRaw;
+    const mergedDuplicates = Math.max(0, openRaw.length - open.length);
 
     if (!classify) {
       // Defensive fallback if classify.js failed to load: treat empty website
@@ -226,9 +233,10 @@
     });
 
     const allLeads = scored.filter((place) => place.isLead);
+    const excludedChains = scored.filter((place) => place.leadCategory === "chain").length;
     const threshold = Number(minConfidence) || 0;
     const surfaced = sortLeads(allLeads.filter((lead) => lead.confidence >= threshold));
-    const withWebsite = scored.length - allLeads.length;
+    const withWebsite = Math.max(0, scored.length - allLeads.length - excludedChains);
 
     return {
       query,
@@ -236,6 +244,8 @@
       failedTiles: errorCount,
       scanned: scored.length,
       withWebsite,
+      mergedDuplicates,
+      excludedChains,
       verified: verifyMap.size,
       leads: surfaced,
       hiddenLowConfidence: allLeads.length - surfaced.length,
@@ -422,6 +432,7 @@
     let total = 0;
     collected.forEach((place) => {
       if (place.businessStatus === "CLOSED_PERMANENTLY") return;
+      if (classify && classify.isChainBusiness && classify.isChainBusiness(place.name)) return;
       const isLead = classify
         ? classify.classifyWebsite(place.website).isLead
         : !place.website;
@@ -511,6 +522,7 @@
       googleMapsURL: place.googleMapsURI || "",
       businessStatus: place.businessStatus || "",
       primaryType: place.primaryType || "",
+      types: Array.isArray(place.types) ? place.types : [],
       lat: coords.lat,
       lng: coords.lng,
       attributions: normalizeAttributions(place.attributions),

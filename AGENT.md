@@ -89,13 +89,25 @@ Filtering rule (see `js/classify.js` and `js/verify.js`):
   platform, a marketplace storefront, a Google profile, or a free site-builder
   subdomain (`*.wixsite.com`, `business.site`, etc.) still counts as a lead. A
   custom domain reads as a real website. Permanently closed businesses are
-  excluded.
-- Listed "real" websites are live-checked from the browser; ones that fail at
-  the network level (dead/parked domains) are reclassified as leads.
-- Every lead carries a confidence score (classification certainty + live-check
-  result + establishment signals). The app reports the mean as an estimated
-  accuracy, and a Match-precision control filters the least-confident leads so
-  the surfaced set stays high-precision.
+  excluded. The domain index is large and international; non-web values (`tel:`,
+  `mailto:`, bare phone numbers) read as "no website".
+- Recognised national chains/franchises are NOT leads — they already have a
+  corporate website, so they are not custom-site prospects. The brand list in
+  `js/classify.js` is deliberately conservative (distinctive brand tokens only)
+  to avoid excluding independent shops that share a common word.
+- Duplicate listings of the same business (common with tiled search) are merged
+  by `classify.mergeDuplicates`, keeping the strongest web presence found across
+  the cluster so a business listed both with and without a site is not a false
+  lead.
+- Listed "real" websites are live-checked from the browser across http/https and
+  www/apex variants; ones where every connection attempt fails at the network
+  level (dead/parked domains) are reclassified as leads. Slow/https-only sites
+  are never mislabelled.
+- Every lead carries a calibrated confidence score (classification certainty +
+  live-check result + establishment signals + a light business-type prior). The
+  app reports the mean as an estimated accuracy, and a Match-precision control
+  filters the least-confident leads so the surfaced set stays high-precision
+  (Balanced keeps the estimated mistake rate under 10%).
 
 The app should be honest about Google API limits, billing, key restrictions, and permission failures. If autocomplete or geolocation is unavailable, manual typing should still work.
 
@@ -103,9 +115,12 @@ Allowed external calls (still no backend, no proxy):
 
 - Live website verification contacts each target site directly from the user's
   browser — exactly as if the user clicked the link. No third-party relay.
-- Current-location guessing uses precise GPS first; if that is blocked it may
-  fall back to a free, no-key IP-geolocation service for a coarse city estimate.
-  This is the only non-Google request and sends nothing but the request itself.
+- Current-location guessing uses precise GPS first: it watches the position for
+  a few seconds and fuses the readings (inverse-variance weighted centroid, with
+  outlier rejection) for a steadier, more accurate fix. If GPS is blocked it
+  falls back to free, no-key IP-geolocation services, querying more than one and
+  averaging providers that agree for a coarse city estimate. These are the only
+  non-Google requests and send nothing but the request itself.
 
 ## Data Shown For Each Lead
 
