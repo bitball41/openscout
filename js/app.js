@@ -309,11 +309,20 @@
       ? ` (${failedTiles} of ${result.tiles} areas failed — results may be incomplete; check your API quota.)`
       : "";
 
+    const cleaned = [];
+    if (result.excludedChains) {
+      cleaned.push(`${result.excludedChains} national chain${result.excludedChains === 1 ? "" : "s"}`);
+    }
+    if (result.mergedDuplicates) {
+      cleaned.push(`${result.mergedDuplicates} duplicate listing${result.mergedDuplicates === 1 ? "" : "s"}`);
+    }
+    const cleanedNote = cleaned.length ? ` Filtered out ${cleaned.join(" and ")}.` : "";
+
     if (!leadCount) {
       const hiddenOnly = result.hiddenLowConfidence
         ? ` ${result.hiddenLowConfidence} low-confidence match${result.hiddenLowConfidence === 1 ? " was" : "es were"} filtered out — switch precision to "All" to see them.`
         : "";
-      return `Scanned ${result.scanned} businesses${areas} — none cleared the bar.${hiddenOnly} Try another area, business type, or a deeper scan.${failedNote}`;
+      return `Scanned ${result.scanned} businesses${areas} — none cleared the bar.${hiddenOnly}${cleanedNote} Try another area, business type, or a deeper scan.${failedNote}`;
     }
 
     const withSite = result.withWebsite || 0;
@@ -322,7 +331,7 @@
     const hidden = result.hiddenLowConfidence
       ? ` ${result.hiddenLowConfidence} lower-confidence lead${result.hiddenLowConfidence === 1 ? "" : "s"} hidden.`
       : "";
-    return `Found ${leadCount} lead${leadCount === 1 ? "" : "s"}${areas} from ${result.scanned} businesses scanned${tail}.${verified}${hidden}${failedNote}`;
+    return `Found ${leadCount} lead${leadCount === 1 ? "" : "s"}${areas} from ${result.scanned} businesses scanned${tail}.${verified}${hidden}${cleanedNote}${failedNote}`;
   }
 
   function formatProgress(progress) {
