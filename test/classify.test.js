@@ -6,6 +6,7 @@
 const assert = require("assert");
 const classify = require("../js/classify.js");
 const verify = require("../js/verify.js");
+const location = require("../js/location.js");
 
 let passed = 0;
 function test(name, fn) {
@@ -337,6 +338,47 @@ test("endpointVariants covers scheme + www/apex, primary first", () => {
   assert.ok(v.includes("http://example.com"));
   assert.ok(v.includes("http://www.example.com"));
   assert.strictEqual(verify.endpointVariants("http://foo.com")[0], "http://foo.com");
+});
+
+// ===========================================================================
+console.log("location.pickIpConsensus (multi-provider IP agreement)");
+// ===========================================================================
+
+const A = { lat: 40.0, lng: -73.0, city: "Alpha", region: "NY", country: "US" };
+const Aclose = { lat: 40.05, lng: -73.0, city: "AlphaClose" }; // ~5.5km from A
+const B = { lat: 34.0, lng: -118.0, city: "Bravo" }; // far from A
+const C = { lat: 34.02, lng: -118.0, city: "Charlie" }; // ~2.2km from B, far from A
+
+test("no hits => null, single hit => that hit", () => {
+  assert.strictEqual(location.pickIpConsensus([]), null);
+  const one = location.pickIpConsensus([A]);
+  assert.strictEqual(one.lat, 40.0);
+  assert.strictEqual(one.city, "Alpha");
+});
+
+test("first two providers agree => averaged", () => {
+  const r = location.pickIpConsensus([A, Aclose]);
+  assert.ok(Math.abs(r.lat - 40.025) < 1e-6, `lat ${r.lat}`);
+  assert.strictEqual(r.lng, -73.0);
+});
+
+test("provider 1 and 3 agree (provider 2 is an outlier) => averaged pair", () => {
+  // This is the bug the review flagged: the agreeing pair is (0,2), not (0,1).
+  const r = location.pickIpConsensus([A, B, Aclose]);
+  assert.ok(Math.abs(r.lat - 40.025) < 1e-6, `expected ~40.025, got ${r.lat}`);
+  assert.strictEqual(r.lng, -73.0);
+});
+
+test("providers 2 and 3 agree (first is the outlier) => their average", () => {
+  const r = location.pickIpConsensus([A, B, C]);
+  assert.ok(Math.abs(r.lat - 34.01) < 1e-6, `expected ~34.01, got ${r.lat}`);
+  assert.strictEqual(r.lng, -118.0);
+});
+
+test("no providers agree => falls back to the first (most reliable) hit", () => {
+  const r = location.pickIpConsensus([A, B, { lat: 0, lng: 0 }]);
+  assert.strictEqual(r.lat, 40.0);
+  assert.strictEqual(r.city, "Alpha");
 });
 
 console.log(`\n${passed} tests passed`);

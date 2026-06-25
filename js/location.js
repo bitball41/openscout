@@ -195,6 +195,39 @@
     },
   ];
 
+  const IP_CONSENSUS_METERS = 75000;
+
+  // Find the first pair of providers (checked in priority order — pairs that
+  // include the most-reliable first provider come first) that agree within the
+  // threshold. Returns [a, b] or null.
+  function agreeingPair(hits, thresholdMeters = IP_CONSENSUS_METERS) {
+    for (let i = 0; i < hits.length; i += 1) {
+      for (let j = i + 1; j < hits.length; j += 1) {
+        if (distanceMeters(hits[i], hits[j]) <= thresholdMeters) {
+          return [hits[i], hits[j]];
+        }
+      }
+    }
+    return null;
+  }
+
+  // Choose a location from the collected provider hits: average the first
+  // agreeing pair if one exists (this is the consensus that guards against any
+  // single provider's bad geo-IP record), otherwise trust the first hit.
+  function pickIpConsensus(hits, thresholdMeters = IP_CONSENSUS_METERS) {
+    if (!hits || !hits.length) return null;
+    const pair = agreeingPair(hits, thresholdMeters);
+    if (!pair) return { ...hits[0] };
+    const [a, b] = pair;
+    return {
+      lat: (a.lat + b.lat) / 2,
+      lng: (a.lng + b.lng) / 2,
+      city: a.city || b.city,
+      region: a.region || b.region,
+      country: a.country || b.country,
+    };
+  }
+
   async function getApproximateLocationByIp() {
     const hits = [];
 
@@ -204,11 +237,8 @@
         const parsed = provider.parse(data);
         if (parsed && Number.isFinite(parsed.lat) && Number.isFinite(parsed.lng)) {
           hits.push(parsed);
-          // Two providers that agree => confident enough to stop.
-          if (hits.length >= 2) {
-            const agree = distanceMeters(hits[0], hits[hits.length - 1]) <= 75000;
-            if (agree) break;
-          }
+          // Stop as soon as any two providers agree on a location.
+          if (hits.length >= 2 && agreeingPair(hits, IP_CONSENSUS_METERS)) break;
         }
       } catch {
         // Try the next provider.
@@ -220,17 +250,9 @@
       throw new Error("Could not estimate your location. Type a city manually.");
     }
 
-    // Average the agreeing pair if we have one; otherwise trust the first hit.
-    let chosen = hits[0];
-    if (hits.length >= 2 && distanceMeters(hits[0], hits[1]) <= 75000) {
-      chosen = {
-        lat: (hits[0].lat + hits[1].lat) / 2,
-        lng: (hits[0].lng + hits[1].lng) / 2,
-        city: hits[0].city || hits[1].city,
-        region: hits[0].region || hits[1].region,
-        country: hits[0].country || hits[1].country,
-      };
-    }
+    // Average the first agreeing pair found across all providers (not just the
+    // first two), falling back to the most-reliable provider if none agree.
+    const chosen = pickIpConsensus(hits, IP_CONSENSUS_METERS);
 
     const label = [chosen.city, chosen.region || chosen.country].filter(Boolean).join(", ");
     return {
@@ -266,11 +288,20 @@
     return `Current location (${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)})${accuracy}`;
   }
 
-  window.OpenScout = window.OpenScout || {};
-  window.OpenScout.location = {
+  const api = {
     getBrowserLocation,
     getApproximateLocationByIp,
     formatCoordinates,
     distanceMeters,
+    pickIpConsensus,
+    agreeingPair,
   };
+
+  if (typeof window !== "undefined") {
+    window.OpenScout = window.OpenScout || {};
+    window.OpenScout.location = api;
+  }
+  if (typeof module !== "undefined" && module.exports) {
+    module.exports = api;
+  }
 })();
