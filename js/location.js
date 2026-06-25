@@ -56,11 +56,17 @@
         finish(toLocationError(error));
       };
 
-      watchId = navigator.geolocation.watchPosition(onFix, onError, {
+      const id = navigator.geolocation.watchPosition(onFix, onError, {
         enableHighAccuracy: true,
         maximumAge: 0,
         timeout: maxWait,
       });
+      watchId = id;
+      // Guard against a synchronous callback that ran finish() before watchId
+      // was assigned — clear the now-known watch so it can't leak.
+      if (settled) {
+        navigator.geolocation.clearWatch(id);
+      }
     });
   }
 
