@@ -133,6 +133,7 @@
     return {
       query,
       tiles: tiles.length,
+      failedTiles: errorCount,
       scanned: normalized.length,
       withWebsite: open.length - leads.length,
       leads,
